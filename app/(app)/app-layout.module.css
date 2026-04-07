@@ -1,0 +1,21 @@
+.appContainer {
+  min-height: 100dvh;
+  padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom));
+  background: var(--bg-primary);
+}
+
+.loadingScreen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: var(--bg-primary);
+}
+
+.loadingText {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}

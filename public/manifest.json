@@ -1,0 +1,25 @@
+{
+  "name": "SVD Stickertausch",
+  "short_name": "SVD Sticker",
+  "description": "Tauschbörse für das Stickeralbum zum 100-jährigen Jubiläum des SV Dalum 1926 e.V.",
+  "start_url": "https://svd.media-wilkens.de/",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
+  "orientation": "portrait",
+  "categories": ["sports", "social"],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
