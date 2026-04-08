@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed:demo": "node scripts/seed-demo.mjs"
+    "seed:demo": "node scripts/seed-demo.mjs",
+    "push:vapid": "node scripts/generate-vapid.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.0",
@@ -15,7 +16,8 @@
     "next": "16.2.2",
     "qrcode": "^1.5.4",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@types/react": "19.2.14",

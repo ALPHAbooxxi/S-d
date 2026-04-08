@@ -322,6 +322,13 @@
   border-radius: var(--radius-full);
 }
 
+.pushActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 /* Legal Links */
 .legalLinks {
   display: flex;

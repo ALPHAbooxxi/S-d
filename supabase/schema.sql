@@ -73,6 +73,18 @@ CREATE TABLE public.messages (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE TABLE public.push_subscriptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  endpoint TEXT NOT NULL UNIQUE,
+  p256dh_key TEXT NOT NULL,
+  auth_key TEXT NOT NULL,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  last_seen_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- ============================================
 -- Indizes für Performance
 -- ============================================
@@ -89,6 +101,7 @@ CREATE INDEX idx_messages_sender_created_at ON public.messages(sender_id, create
 CREATE INDEX idx_messages_receiver_created_at ON public.messages(receiver_id, created_at DESC);
 CREATE INDEX idx_messages_trade_request_created_at ON public.messages(trade_request_id, created_at DESC) WHERE trade_request_id IS NOT NULL;
 CREATE INDEX idx_messages_unread ON public.messages(receiver_id, is_read) WHERE NOT is_read;
+CREATE INDEX idx_push_subscriptions_user ON public.push_subscriptions(user_id);
 
 -- ============================================
 -- Row Level Security (RLS)
@@ -99,6 +112,7 @@ ALTER TABLE public.user_stickers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.offers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.trade_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- Profile: Jeder kann Profile sehen, nur eigenes bearbeiten
 CREATE POLICY "Profiles sind öffentlich lesbar"
@@ -165,6 +179,22 @@ CREATE POLICY "Beteiligte können Nachrichten löschen"
   ON public.messages FOR DELETE
   USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
 
+CREATE POLICY "User kann eigene Push Subscriptions lesen"
+  ON public.push_subscriptions FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "User kann eigene Push Subscriptions speichern"
+  ON public.push_subscriptions FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "User kann eigene Push Subscriptions aktualisieren"
+  ON public.push_subscriptions FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "User kann eigene Push Subscriptions loeschen"
+  ON public.push_subscriptions FOR DELETE
+  USING (auth.uid() = user_id);
+
 -- ============================================
 -- Trigger: updated_at automatisch setzen
 -- ============================================
@@ -184,6 +214,8 @@ CREATE TRIGGER user_stickers_updated_at BEFORE UPDATE ON public.user_stickers
 CREATE TRIGGER offers_updated_at BEFORE UPDATE ON public.offers
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 CREATE TRIGGER trade_requests_updated_at BEFORE UPDATE ON public.trade_requests
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+CREATE TRIGGER push_subscriptions_updated_at BEFORE UPDATE ON public.push_subscriptions
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- ============================================

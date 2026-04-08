@@ -15,7 +15,16 @@ import styles from './profil.module.css'
 export default function ProfilPage() {
   const { user, logout, updateProfile, updateEmail, updatePassword, deleteAccount } = useAuth()
   const { ownedStickers, duplicateStickers, progress, totalDuplicates, clearAll } = useStickers()
-  const { supported: pushSupported, permission: pushPermission, requestPermission } = usePushNotifications()
+  const {
+    supported: pushSupported,
+    permission: pushPermission,
+    subscription: pushSubscription,
+    busy: pushBusy,
+    error: pushError,
+    requestPermission,
+    disablePush,
+    sendTestPush,
+  } = usePushNotifications()
   const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({
@@ -70,6 +79,14 @@ export default function ProfilPage() {
     if (pushPermission !== 'granted') {
       await requestPermission()
     }
+  }
+
+  const handlePushDisable = async () => {
+    await disablePush()
+  }
+
+  const handlePushTest = async () => {
+    await sendTestPush()
   }
 
   const handleEmailSave = async () => {
@@ -329,7 +346,9 @@ export default function ProfilPage() {
                 <span className={styles.pushLabel}>Push-Benachrichtigungen</span>
                 <span className={styles.pushDesc}>
                   {pushPermission === 'granted'
-                    ? 'Aktiv – du wirst benachrichtigt bei neuen Nachrichten'
+                    ? pushSubscription
+                      ? 'Aktiv – neue Nachrichten und Tauschanfragen koennen dich jetzt erreichen'
+                      : 'Erlaubt – die Push-Subscription wird gerade vorbereitet'
                     : pushPermission === 'denied'
                     ? 'Blockiert – aktiviere sie in deinen Browser-Einstellungen'
                     : 'Erhalte Benachrichtigungen bei neuen Nachrichten und Tauschanfragen'
@@ -338,17 +357,30 @@ export default function ProfilPage() {
               </div>
             </div>
             {pushPermission !== 'granted' && pushPermission !== 'denied' && (
-              <button className="btn btn-primary btn-sm" onClick={handlePushToggle} id="enable-push">
-                Aktivieren
+              <button className="btn btn-primary btn-sm" onClick={handlePushToggle} id="enable-push" disabled={pushBusy}>
+                {pushBusy ? 'Aktiviert...' : 'Aktivieren'}
               </button>
             )}
             {pushPermission === 'granted' && (
-              <span className={styles.pushActive}><CheckIcon size={14} strokeWidth={2.2} />Aktiv</span>
+              <div className={styles.pushActions}>
+                <span className={styles.pushActive}><CheckIcon size={14} strokeWidth={2.2} />Aktiv</span>
+                <button className="btn btn-secondary btn-sm" onClick={handlePushTest} disabled={pushBusy || !pushSubscription}>
+                  Test senden
+                </button>
+                <button className="btn btn-ghost btn-sm" onClick={handlePushDisable} disabled={pushBusy || !pushSubscription}>
+                  Deaktivieren
+                </button>
+              </div>
             )}
             {pushPermission === 'denied' && (
               <span className={styles.pushDenied}>Blockiert</span>
             )}
           </div>
+          {pushError ? (
+            <div className={styles.feedbackError} style={{ marginTop: 16, marginBottom: 0 }}>
+              {pushError}
+            </div>
+          ) : null}
         </div>
       )}
 
