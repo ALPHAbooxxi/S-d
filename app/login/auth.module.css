@@ -55,18 +55,19 @@
 
 .header h1 {
   font-size: 1.4rem;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .header p {
   color: var(--text-muted);
   font-size: 0.85rem;
+  line-height: 1.55;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .errorBox {
@@ -88,7 +89,7 @@
 .separator {
   height: 1px;
   background: var(--border-light);
-  margin: 4px 0;
+  margin: 6px 0 2px;
 }
 
 .divider {

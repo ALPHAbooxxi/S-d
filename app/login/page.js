@@ -1,19 +1,21 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { BallIcon } from '@/components/AppIcons'
 import styles from './auth.module.css'
 
-export default function LoginPage() {
+function LoginContent() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectError = searchParams.get('error')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -48,7 +50,7 @@ export default function LoginPage() {
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit}>
-          {error && <div className={styles.errorBox}>{error}</div>}
+          {(error || redirectError) && <div className={styles.errorBox}>{error || redirectError}</div>}
 
           <div className="input-group">
             <label htmlFor="email">E-Mail</label>
@@ -103,5 +105,13 @@ export default function LoginPage() {
         </Link>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginContent />
+    </Suspense>
   )
 }

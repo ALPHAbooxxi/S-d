@@ -1,0 +1,228 @@
+.page {
+  min-height: 100vh;
+  padding: 28px 18px 40px;
+  background:
+    radial-gradient(circle at top right, rgba(234, 200, 1, 0.22), transparent 28%),
+    linear-gradient(180deg, #fffdf3 0%, #ffffff 38%, #f6f7fb 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hero,
+.progressCard,
+.duplicatesCard,
+.footerCard {
+  width: min(100%, 640px);
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(17, 17, 19, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(17, 17, 19, 0.08);
+}
+
+.hero {
+  padding: 32px 24px 28px;
+  text-align: center;
+}
+
+.badge,
+.eyebrow,
+.sectionMeta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.badge {
+  padding: 7px 12px;
+  background: var(--svd-yellow-100);
+  color: var(--svd-dark-800);
+}
+
+.avatar {
+  width: 82px;
+  height: 82px;
+  margin: 18px auto 14px;
+  border-radius: 50%;
+  background: var(--svd-dark-800);
+  color: var(--svd-yellow-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.title {
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  font-weight: 900;
+}
+
+.username {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin-top: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.progressCard,
+.duplicatesCard,
+.footerCard {
+  padding: 24px 20px;
+}
+
+.progressTop,
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.progressTop h2,
+.sectionHeader h2 {
+  margin-top: 6px;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.eyebrow,
+.sectionMeta {
+  padding: 6px 10px;
+  background: var(--gray-100);
+  color: var(--text-muted);
+}
+
+.progressValue {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--svd-dark-900);
+}
+
+.progressTrack {
+  margin-top: 16px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--gray-100);
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--svd-yellow-400), var(--svd-yellow-600));
+}
+
+.statsGrid {
+  width: min(100%, 640px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.statCard {
+  padding: 18px 14px;
+  border-radius: 22px;
+  background: var(--svd-dark-900);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.statCard strong {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--svd-yellow-500);
+}
+
+.statCard span {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.emptyState {
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--gray-50);
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.chipGrid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(134px, 1fr));
+  gap: 12px;
+}
+
+.stickerChip {
+  padding: 14px 14px 13px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fffef7 0%, #ffffff 100%);
+  border: 1px solid rgba(234, 200, 1, 0.28);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stickerChip span {
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--svd-dark-900);
+}
+
+.stickerChip strong {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.footerCard {
+  text-align: center;
+}
+
+.footerCard p {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.footerLink {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--svd-dark-900);
+  color: white;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+@media (max-width: 640px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .progressTop,
+  .sectionHeader {
+    flex-direction: column;
+  }
+}

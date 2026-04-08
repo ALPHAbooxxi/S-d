@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
-import { ChatIcon } from '@/components/AppIcons'
-import { loadUserDirectory, loadUserProfile } from '@/lib/matching'
+import { ChatIcon, CloseIcon, SearchIcon } from '@/components/AppIcons'
+import { createClient } from '@/lib/supabase/client'
+import { cacheDiscoveredUser, loadUserDirectory, loadUserProfile } from '@/lib/matching'
 import { useTrades } from '@/lib/trades-context'
 import styles from './nachrichten.module.css'
 
@@ -26,6 +27,7 @@ export default function NachrichtenPage() {
   const { user } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const supabase = useMemo(() => createClient(), [])
   const partnerFromUrl = searchParams.get('partner')
   const {
     getConversations,
@@ -38,13 +40,27 @@ export default function NachrichtenPage() {
   } = useTrades()
   const conversations = getConversations()
   const [draft, setDraft] = useState('')
-  const directory = user ? loadUserDirectory(user.id) : []
+  const [searchUsername, setSearchUsername] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [searchError, setSearchError] = useState('')
+  const deferredUsername = useDeferredValue(searchUsername)
+  const directory = useMemo(
+    () => (user ? loadUserDirectory(user.id) : []),
+    [user]
+  )
+  const directoryUserIds = useMemo(
+    () => new Set(directory.map((entry) => entry.userId)),
+    [directory]
+  )
 
   const selectedPartnerId = partnerFromUrl || conversations[0]?.partnerId || null
+  const discoveredPartner = searchResults.find((entry) => entry.userId === selectedPartnerId) || null
   const selectedPartner = !selectedPartnerId
     ? null
     : directory.find((entry) => entry.userId === selectedPartnerId) ||
-      loadUserProfile(selectedPartnerId)
+      loadUserProfile(selectedPartnerId) ||
+      discoveredPartner
 
   const threadMessages = selectedPartnerId ? getMessagesWithPartner(selectedPartnerId) : []
   const threadTrades = selectedPartnerId ? getTradesWithPartner(selectedPartnerId) : []
@@ -55,7 +71,61 @@ export default function NachrichtenPage() {
     }
   }, [markAsRead, selectedPartnerId])
 
-  const handleSelectPartner = (partnerId) => {
+  useEffect(() => {
+    let active = true
+
+    async function searchProfiles() {
+      const normalized = deferredUsername.trim().replace(/^@+/, '')
+
+      if (!normalized) {
+        setSearchResults([])
+        setSearchError('')
+        setSearchLoading(false)
+        return
+      }
+
+      setSearchLoading(true)
+      setSearchError('')
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, username, display_name')
+        .ilike('username', `%${normalized}%`)
+        .neq('id', user?.id || '')
+        .order('username', { ascending: true })
+        .limit(8)
+
+      if (!active) return
+
+      if (error) {
+        setSearchError('Benutzersuche ist gerade nicht verfuegbar.')
+        setSearchResults([])
+        setSearchLoading(false)
+        return
+      }
+
+      const nextResults = (data || []).map((entry) => ({
+        userId: entry.id,
+        username: entry.username,
+        displayName: entry.display_name || entry.username,
+        isKnown: directoryUserIds.has(entry.id),
+      }))
+
+      setSearchResults(nextResults)
+      setSearchLoading(false)
+    }
+
+    void searchProfiles()
+
+    return () => {
+      active = false
+    }
+  }, [deferredUsername, directoryUserIds, supabase, user?.id])
+
+  const handleSelectPartner = (partnerId, partnerMeta = null) => {
+    if (partnerMeta) {
+      cacheDiscoveredUser(partnerMeta)
+    }
     router.replace(`/nachrichten?partner=${partnerId}`)
   }
 
@@ -80,6 +150,71 @@ export default function NachrichtenPage() {
         )}
       </div>
 
+      <div className={styles.discoveryCard}>
+        <div className={styles.discoveryHeader}>
+          <div>
+            <h2 className={styles.discoveryTitle}>Benutzername finden</h2>
+            <p className={styles.discoveryText}>
+              Suche direkt nach @Benutzernamen und starte dann den Chat in der App.
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.searchBar}>
+          <SearchIcon size={16} strokeWidth={2.5} />
+          <input
+            type="text"
+            className={styles.searchInput}
+            value={searchUsername}
+            onChange={(event) => setSearchUsername(event.target.value)}
+            placeholder="@benutzername suchen..."
+            id="chat-username-search"
+          />
+          {searchUsername && (
+            <button
+              className={styles.clearSearch}
+              onClick={() => setSearchUsername('')}
+              aria-label="Suche leeren"
+            >
+              <CloseIcon size={14} strokeWidth={2.4} />
+            </button>
+          )}
+        </div>
+
+        {searchUsername && (
+          <div className={styles.searchResults}>
+            {searchLoading ? (
+              <div className={styles.searchInfo}>Benutzernamen werden gesucht...</div>
+            ) : searchError ? (
+              <div className={styles.searchInfo}>{searchError}</div>
+            ) : searchResults.length === 0 ? (
+              <div className={styles.searchInfo}>
+                Kein Benutzername gefunden. Lass dir am besten den Profil-Link oder QR-Code schicken.
+              </div>
+            ) : (
+              searchResults.map((entry) => (
+                <button
+                  key={entry.userId}
+                  className={styles.searchResultCard}
+                  onClick={() => handleSelectPartner(entry.userId, entry)}
+                >
+                  <div className={styles.convAvatar}>
+                    {(entry.displayName || entry.username).charAt(0).toUpperCase()}
+                  </div>
+                  <div className={styles.searchResultContent}>
+                    <strong>{entry.displayName || entry.username}</strong>
+                    <span>@{entry.username}</span>
+                  </div>
+                  <span className="badge badge-dark">
+                    {entry.isKnown ? 'Chat oeffnen' : 'Neu'}
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
       {conversations.length === 0 && !selectedPartner ? (
         <div className="empty-state">
           <span className="empty-state-icon"><ChatIcon size={40} strokeWidth={1.8} /></span>
@@ -101,7 +236,7 @@ export default function NachrichtenPage() {
                 <button
                   key={conv.partnerId}
                   className={`${styles.conversationCard} ${isActive ? styles.conversationActive : ''}`}
-                  onClick={() => handleSelectPartner(conv.partnerId)}
+                  onClick={() => handleSelectPartner(conv.partnerId, partner)}
                 >
                   <div className={styles.convAvatar}>
                     {(partner?.displayName || partner?.username || conv.partnerId).charAt(0).toUpperCase()}

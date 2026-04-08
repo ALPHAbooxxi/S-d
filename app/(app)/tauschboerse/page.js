@@ -1,12 +1,12 @@
 'use client'
 
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { useStickers } from '@/lib/stickers-context'
 import { ArrowDownIcon, ArrowUpIcon, CloseIcon, CollectionIcon, SearchIcon } from '@/components/AppIcons'
 import { useTrades } from '@/lib/trades-context'
-import { findMatches, loadUserDirectory, searchUsersByUsername } from '@/lib/matching'
+import { findMatches, loadUserDirectory } from '@/lib/matching'
 import styles from './tauschboerse.module.css'
 
 export default function TauschboersePage() {
@@ -15,9 +15,7 @@ export default function TauschboersePage() {
   const { createTrade } = useTrades()
   const router = useRouter()
   const [searchNumber, setSearchNumber] = useState('')
-  const [searchUsername, setSearchUsername] = useState('')
   const [activeTab, setActiveTab] = useState('matches')
-  const deferredUsername = useDeferredValue(searchUsername)
   const directory = useMemo(() => (user ? loadUserDirectory(user.id) : []), [user])
   const matches = useMemo(() => findMatches(stickers, directory), [directory, stickers])
 
@@ -29,21 +27,6 @@ export default function TauschboersePage() {
       m.theyCanGive.includes(num) || m.iCanGive.includes(num)
     )
   }, [matches, searchNumber])
-
-  const directUserResults = useMemo(() => {
-    if (!deferredUsername.trim()) return []
-
-    const matchedUsers = searchUsersByUsername(deferredUsername, directory)
-    return matchedUsers.map((entry) => {
-      const match = matches.find((item) => item.userId === entry.userId)
-      return {
-        ...entry,
-        theyCanGive: match?.theyCanGive || [],
-        iCanGive: match?.iCanGive || [],
-        mutualCount: match?.mutualCount || 0,
-      }
-    })
-  }, [deferredUsername, directory, matches])
 
   const hasStickers = Object.keys(stickers).length > 0
 
@@ -65,82 +48,8 @@ export default function TauschboersePage() {
       <div className={styles.header}>
         <h1 className={styles.title}>Tauschbörse</h1>
         <p className={styles.subtitle}>
-          Finde Nutzer, starte Nachrichten und sende Tauschanfragen direkt in der App.
+          Finde passende Tauschpartner und filtere direkt nach Sticker-Nummern.
         </p>
-      </div>
-
-      <div className={styles.discoveryCard}>
-        <div>
-          <div>
-            <h2 className={styles.discoveryTitle}>Benutzername finden</h2>
-            <p className={styles.discoveryText}>
-              Suche direkt nach einem Nutzer oder einer Freundin per @Benutzername.
-            </p>
-          </div>
-        </div>
-
-        <div className={styles.searchBar}>
-          <SearchIcon size={16} strokeWidth={2.5} />
-          <input
-            type="text"
-            className={styles.searchInput}
-            value={searchUsername}
-            onChange={(e) => setSearchUsername(e.target.value)}
-            placeholder="@benutzername suchen..."
-            id="search-username"
-          />
-          {searchUsername && (
-            <button className={styles.clearSearch} onClick={() => setSearchUsername('')} aria-label="Suche leeren">
-              <CloseIcon size={14} strokeWidth={2.4} />
-            </button>
-          )}
-        </div>
-
-        {searchUsername && (
-          <div className={styles.directResults}>
-            {directUserResults.length === 0 ? (
-              <div className={styles.miniEmpty}>
-                Kein Benutzername gefunden. Probiere einen anderen Namen oder teile den QR-Code aus dem Profil.
-              </div>
-            ) : (
-              directUserResults.map((entry) => (
-                <div key={entry.userId} className={styles.directCard}>
-                  <div className={styles.matchHeader}>
-                    <div className={styles.matchAvatar}>
-                      {(entry.displayName || entry.username).charAt(0).toUpperCase()}
-                    </div>
-                    <div className={styles.matchInfo}>
-                      <span className={styles.matchName}>{entry.displayName || entry.username}</span>
-                      <span className={styles.matchUsername}>@{entry.username}</span>
-                    </div>
-                    <span className="badge badge-dark">
-                      {entry.mutualCount > 0 ? `${entry.mutualCount} Match` : 'Direktkontakt'}
-                    </span>
-                  </div>
-
-                  <div className={styles.directMeta}>
-                    <span>{entry.ownedCount} Sticker eingetragen</span>
-                    <span>{entry.duplicateCount} doppelte Sticker</span>
-                    {entry.theyCanGive.length > 0 || entry.iCanGive.length > 0 ? (
-                      <span>{entry.theyCanGive.length + entry.iCanGive.length} moegliche Tauschangebote</span>
-                    ) : (
-                      <span>Noch kein direkter Sticker-Match</span>
-                    )}
-                  </div>
-
-                  <div className={styles.matchActions}>
-                    <button className="btn btn-secondary btn-sm" onClick={() => handleOpenConversation(entry.userId)}>
-                      Nachricht senden
-                    </button>
-                    <button className="btn btn-dark btn-sm" onClick={() => handleTradeRequest(entry)}>
-                      Tauschanfrage
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        )}
       </div>
 
       {!hasStickers ? (

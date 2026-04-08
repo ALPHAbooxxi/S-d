@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
@@ -12,7 +12,7 @@ import ProfileShareCard from '@/components/ProfileShareCard'
 import styles from './profil.module.css'
 
 export default function ProfilPage() {
-  const { user, logout, updateProfile } = useAuth()
+  const { user, logout, updateProfile, updateEmail, updatePassword, deleteAccount } = useAuth()
   const { ownedStickers, duplicateStickers, progress, totalDuplicates, clearAll } = useStickers()
   const { supported: pushSupported, permission: pushPermission, requestPermission } = usePushNotifications()
   const router = useRouter()
@@ -20,15 +20,42 @@ export default function ProfilPage() {
   const [form, setForm] = useState({
     displayName: user?.displayName || '',
   })
+  const [emailForm, setEmailForm] = useState({
+    email: user?.email || '',
+  })
+  const [passwordForm, setPasswordForm] = useState({
+    password: '',
+    confirmPassword: '',
+  })
   const [showConfirmClear, setShowConfirmClear] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [feedback, setFeedback] = useState({ type: '', message: '' })
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [savingEmail, setSavingEmail] = useState(false)
+  const [savingPassword, setSavingPassword] = useState(false)
+  const [deletingAccount, setDeletingAccount] = useState(false)
 
-  const handleSave = () => {
-    updateProfile(form)
-    setEditing(false)
+  useEffect(() => {
+    setForm({ displayName: user?.displayName || '' })
+    setEmailForm({ email: user?.email || '' })
+  }, [user?.displayName, user?.email])
+
+  const handleSave = async () => {
+    setFeedback({ type: '', message: '' })
+    setSavingProfile(true)
+    try {
+      await updateProfile(form)
+      setEditing(false)
+      setFeedback({ type: 'success', message: 'Anzeigename wurde aktualisiert.' })
+    } catch (error) {
+      setFeedback({ type: 'error', message: error.message })
+    } finally {
+      setSavingProfile(false)
+    }
   }
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     router.push('/')
   }
 
@@ -40,6 +67,68 @@ export default function ProfilPage() {
   const handlePushToggle = async () => {
     if (pushPermission !== 'granted') {
       await requestPermission()
+    }
+  }
+
+  const handleEmailSave = async () => {
+    setFeedback({ type: '', message: '' })
+
+    const normalizedEmail = emailForm.email.trim()
+    if (!normalizedEmail) {
+      setFeedback({ type: 'error', message: 'Bitte eine gueltige E-Mail eingeben.' })
+      return
+    }
+
+    setSavingEmail(true)
+    try {
+      await updateEmail({ email: normalizedEmail })
+      setFeedback({
+        type: 'success',
+        message: 'Bestaetige jetzt die Mail an deine neue Adresse. Die Aenderung wird danach uebernommen.',
+      })
+    } catch (error) {
+      setFeedback({ type: 'error', message: error.message })
+    } finally {
+      setSavingEmail(false)
+    }
+  }
+
+  const handlePasswordSave = async () => {
+    setFeedback({ type: '', message: '' })
+
+    if (passwordForm.password.length < 6) {
+      setFeedback({ type: 'error', message: 'Das neue Passwort muss mindestens 6 Zeichen lang sein.' })
+      return
+    }
+
+    if (passwordForm.password !== passwordForm.confirmPassword) {
+      setFeedback({ type: 'error', message: 'Die neuen Passwoerter stimmen nicht ueberein.' })
+      return
+    }
+
+    setSavingPassword(true)
+    try {
+      await updatePassword({ password: passwordForm.password })
+      setPasswordForm({ password: '', confirmPassword: '' })
+      setFeedback({ type: 'success', message: 'Passwort wurde aktualisiert.' })
+    } catch (error) {
+      setFeedback({ type: 'error', message: error.message })
+    } finally {
+      setSavingPassword(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    setFeedback({ type: '', message: '' })
+    setDeletingAccount(true)
+    try {
+      await deleteAccount()
+      router.push('/')
+    } catch (error) {
+      setFeedback({ type: 'error', message: error.message })
+      setShowDeleteModal(false)
+    } finally {
+      setDeletingAccount(false)
     }
   }
 
@@ -83,9 +172,17 @@ export default function ProfilPage() {
           {!editing ? (
             <button className="btn btn-ghost btn-sm" onClick={() => setEditing(true)} id="edit-profile">Bearbeiten</button>
           ) : (
-            <button className="btn btn-primary btn-sm" onClick={handleSave} id="save-profile">Speichern</button>
+            <button className="btn btn-primary btn-sm" onClick={handleSave} id="save-profile" disabled={savingProfile}>
+              {savingProfile ? 'Speichert...' : 'Speichern'}
+            </button>
           )}
         </div>
+
+        {feedback.message && (
+          <div className={feedback.type === 'error' ? styles.feedbackError : styles.feedbackSuccess}>
+            {feedback.message}
+          </div>
+        )}
 
         {editing ? (
           <div className={styles.editForm}>
@@ -110,6 +207,57 @@ export default function ProfilPage() {
             </div>
           </div>
         )}
+      </div>
+
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Zugangsdaten</h2>
+        </div>
+
+        <div className={styles.editForm}>
+          <div className="input-group">
+            <label htmlFor="edit-email">E-Mail aendern</label>
+            <input
+              id="edit-email"
+              type="email"
+              className="input"
+              value={emailForm.email}
+              onChange={(event) => setEmailForm({ email: event.target.value })}
+              autoComplete="email"
+            />
+          </div>
+          <button className="btn btn-secondary" onClick={handleEmailSave} disabled={savingEmail}>
+            {savingEmail ? 'Wird gesendet...' : 'E-Mail aktualisieren'}
+          </button>
+
+          <div className={styles.separator} />
+
+          <div className="input-group">
+            <label htmlFor="new-password-profile">Neues Passwort</label>
+            <input
+              id="new-password-profile"
+              type="password"
+              className="input"
+              value={passwordForm.password}
+              onChange={(event) => setPasswordForm((prev) => ({ ...prev, password: event.target.value }))}
+              autoComplete="new-password"
+            />
+          </div>
+          <div className="input-group">
+            <label htmlFor="confirm-password-profile">Passwort bestaetigen</label>
+            <input
+              id="confirm-password-profile"
+              type="password"
+              className="input"
+              value={passwordForm.confirmPassword}
+              onChange={(event) => setPasswordForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
+              autoComplete="new-password"
+            />
+          </div>
+          <button className="btn btn-secondary" onClick={handlePasswordSave} disabled={savingPassword}>
+            {savingPassword ? 'Speichert...' : 'Passwort aktualisieren'}
+          </button>
+        </div>
       </div>
 
       <div className={styles.section}>
@@ -172,6 +320,10 @@ export default function ProfilPage() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
             Abmelden
           </button>
+          <button className={`${styles.actionBtn} ${styles.actionDangerStrong}`} onClick={() => setShowDeleteModal(true)} id="delete-account-button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /></svg>
+            Account loeschen
+          </button>
         </div>
       </div>
 
@@ -200,6 +352,24 @@ export default function ProfilPage() {
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="btn btn-secondary btn-full" onClick={() => setShowConfirmClear(false)}>Abbrechen</button>
               <button className="btn btn-full" style={{ background: 'var(--error)', color: 'white' }} onClick={handleClearAll}>Ja, zurücksetzen</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-handle" />
+            <h3 style={{ marginBottom: 8 }}>Account loeschen?</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: 20, lineHeight: 1.5 }}>
+              Dein Profil, deine Stickerdaten und dein Login werden endgueltig geloescht. Dieser Schritt kann nicht rueckgaengig gemacht werden.
+            </p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn btn-secondary btn-full" onClick={() => setShowDeleteModal(false)} disabled={deletingAccount}>Abbrechen</button>
+              <button className="btn btn-full" style={{ background: 'var(--error)', color: 'white' }} onClick={handleDeleteAccount} disabled={deletingAccount}>
+                {deletingAccount ? 'Loescht...' : 'Ja, Account loeschen'}
+              </button>
             </div>
           </div>
         </div>

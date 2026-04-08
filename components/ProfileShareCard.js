@@ -3,10 +3,10 @@
 import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 import QRCode from 'qrcode'
-import { ALBUM_CONFIG } from '@/lib/stickers-context'
+import { ALBUM_CONFIG } from '@/lib/album-config'
 import styles from './ProfileShareCard.module.css'
 
-function buildShareText({ user, ownedCount, totalDuplicates, duplicateStickers }) {
+function buildShareText({ user, ownedCount, totalDuplicates, duplicateStickers, publicUrl }) {
   const topDuplicates = duplicateStickers
     .slice(0, 18)
     .map((entry) => `#${entry.number}`)
@@ -21,7 +21,7 @@ function buildShareText({ user, ownedCount, totalDuplicates, duplicateStickers }
     topDuplicates
       ? `Aktuell zum Tauschen: ${topDuplicates}${duplicateStickers.length > 18 ? ' ...' : ''}`
       : 'Aktuell keine doppelten Sticker eingetragen.',
-    `In der App finden unter: @${user.username}`,
+    publicUrl,
   ]
     .filter(Boolean)
     .join('\n')
@@ -35,16 +35,21 @@ export default function ProfileShareCard({
 }) {
   const [qrCodeUrl, setQrCodeUrl] = useState('')
   const [copied, setCopied] = useState(false)
+  const publicUrl = useMemo(() => {
+    if (typeof window === 'undefined') return ''
+    return `${window.location.origin}/u/${encodeURIComponent(user.username)}`
+  }, [user.username])
 
   const shareText = useMemo(
-    () => buildShareText({ user, ownedCount, totalDuplicates, duplicateStickers }),
-    [duplicateStickers, ownedCount, totalDuplicates, user]
+    () => buildShareText({ user, ownedCount, totalDuplicates, duplicateStickers, publicUrl }),
+    [duplicateStickers, ownedCount, publicUrl, totalDuplicates, user]
   )
 
   useEffect(() => {
     let cancelled = false
+    if (!publicUrl) return
 
-    QRCode.toDataURL(shareText, {
+    QRCode.toDataURL(publicUrl, {
       width: 280,
       margin: 1,
       color: {
@@ -60,11 +65,11 @@ export default function ProfileShareCard({
     return () => {
       cancelled = true
     }
-  }, [shareText])
+  }, [publicUrl])
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(shareText)
+      await navigator.clipboard.writeText(publicUrl)
       setCopied(true)
       window.setTimeout(() => setCopied(false), 1800)
     } catch (error) {
@@ -78,6 +83,7 @@ export default function ProfileShareCard({
         await navigator.share({
           title: 'SVD Stickertausch',
           text: shareText,
+          url: publicUrl,
         })
         return
       } catch (error) {
@@ -99,8 +105,8 @@ export default function ProfileShareCard({
       </div>
 
       <p className={styles.description}>
-        Der Code zeigt deinen Benutzernamen, deinen Albumstand und deine aktuellen
-        Tausch-Sticker. So finden dich andere direkt in der App.
+        Der Code verlinkt auf dein oeffentliches Profil mit Fortschritt und doppelten
+        Stickern. So kannst du deinen Stand direkt teilen, auch ohne Login.
       </p>
 
       <div className={styles.qrWrap}>
@@ -133,7 +139,7 @@ export default function ProfileShareCard({
 
       <div className={styles.actions}>
         <button className="btn btn-secondary btn-full" onClick={handleCopy}>
-          {copied ? 'Text kopiert' : 'Text kopieren'}
+          {copied ? 'Link kopiert' : 'Link kopieren'}
         </button>
         <button className="btn btn-primary btn-full" onClick={handleShare}>
           Teilen

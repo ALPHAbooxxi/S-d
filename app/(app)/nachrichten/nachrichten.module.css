@@ -3,17 +3,130 @@
   padding-top: calc(20px + var(--safe-top));
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   max-width: 600px;
   margin: 0 auto;
 }
 
 .title { font-size: 1.4rem; font-weight: 900; }
 
+.discoveryCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(180deg, #fffef7 0%, #ffffff 100%);
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(234, 200, 1, 0.24);
+}
+
+.discoveryHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.discoveryTitle {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.discoveryText {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+}
+
+.searchInput {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.searchInput:focus {
+  outline: none;
+}
+
+.clearSearch {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  padding: 0;
+  border-radius: 999px;
+  background: var(--gray-100);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.searchResults {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.searchInfo {
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px dashed var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.searchResultCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.searchResultContent {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.searchResultContent strong {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.searchResultContent span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 .layout {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .conversationList {
@@ -26,7 +139,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px 16px;
+  padding: 15px 16px;
   background: var(--bg-secondary);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-light);
@@ -108,7 +221,7 @@
 .threadCard {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   padding: 16px;
   background: var(--bg-secondary);
   border-radius: var(--radius-lg);
@@ -129,13 +242,13 @@
 .tradeList {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .tradeCard {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   padding: 14px;
   border-radius: var(--radius-lg);
   background: linear-gradient(180deg, #fffef7 0%, #ffffff 100%);
@@ -180,11 +293,11 @@
 .messageList {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .threadEmpty {
-  padding: 18px;
+  padding: 18px 16px;
   border-radius: var(--radius-lg);
   background: var(--gray-50);
   border: 1px dashed var(--border-color);
@@ -227,7 +340,7 @@
 .composer {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .composerInput {

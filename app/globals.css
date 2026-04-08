@@ -177,7 +177,7 @@ img { max-width: 100%; display: block; }
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
-  padding: 12px 24px;
+  padding: 12px 20px;
   font-weight: 700;
   font-size: 0.9rem;
   border-radius: var(--radius-md);
@@ -248,9 +248,9 @@ img { max-width: 100%; display: block; }
 }
 
 .btn-sm {
-  padding: 8px 16px;
+  padding: 8px 14px;
   font-size: 0.82rem;
-  min-height: 36px;
+  min-height: 38px;
   border-radius: var(--radius-sm);
 }
 
@@ -286,7 +286,7 @@ img { max-width: 100%; display: block; }
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: 6px;
 }
 
 .input-group label {
@@ -307,6 +307,7 @@ img { max-width: 100%; display: block; }
   font-size: 0.95rem;
   transition: all var(--transition-fast);
   min-height: 48px;
+  line-height: 1.4;
 }
 .input:focus {
   outline: none;
