@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { ChatIcon } from '@/components/AppIcons'
 import { useAuth } from '@/lib/auth-context'
@@ -45,12 +45,20 @@ function ChatDetailContent() {
     markAsRead,
     updateTradeStatus,
     deleteConversation,
+    loading,
+    syncError,
+    refreshTrades,
   } = useTrades()
   const [draft, setDraft] = useState('')
   const [tradeNote, setTradeNote] = useState('')
   const [deleteError, setDeleteError] = useState('')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deletingConversation, setDeletingConversation] = useState(false)
+  const [sendingMessage, setSendingMessage] = useState(false)
+  const [sendingTrade, setSendingTrade] = useState(false)
+  const [messageError, setMessageError] = useState('')
+  const [tradeError, setTradeError] = useState('')
+  const [lastFailedDraft, setLastFailedDraft] = useState(null)
   const [partner, setPartner] = useState(() => {
     if (!user || !partnerId) return null
     return (
@@ -60,6 +68,8 @@ function ChatDetailContent() {
   })
   const threadMessages = getMessagesWithPartner(partnerId)
   const threadTrades = getTradesWithPartner(partnerId)
+  const messageListRef = useRef(null)
+  const messageEndRef = useRef(null)
   const tradeDraft = useMemo(() => {
     const suggestedGive = parseStickerList(searchParams.get('give'))
     const suggestedWant = parseStickerList(searchParams.get('want'))
@@ -77,7 +87,7 @@ function ChatDetailContent() {
 
   useEffect(() => {
     if (partnerId) {
-      markAsRead(partnerId)
+      void markAsRead(partnerId)
     }
   }, [markAsRead, partnerId])
 
@@ -113,30 +123,77 @@ function ChatDetailContent() {
     }
   }, [partner, partnerId, supabase])
 
-  const handleSubmit = (event) => {
-    event.preventDefault()
-    if (!draft.trim()) return
+  useEffect(() => {
+    if (!messageEndRef.current) return
+    messageEndRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+  }, [partnerId, threadMessages.length, threadTrades.length])
 
-    sendMessage({
-      receiverId: partnerId,
-      content: draft,
-      tradeId: threadTrades[0]?.id || null,
-    })
-    setDraft('')
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    const nextDraft = draft.trim()
+    if (!nextDraft || sendingMessage) return
+
+    setSendingMessage(true)
+    setMessageError('')
+
+    try {
+      await sendMessage({
+        receiverId: partnerId,
+        content: nextDraft,
+        tradeId: threadTrades[0]?.id || null,
+      })
+      setLastFailedDraft(null)
+      setDraft('')
+    } catch (error) {
+      setLastFailedDraft({
+        receiverId: partnerId,
+        content: nextDraft,
+        tradeId: threadTrades[0]?.id || null,
+      })
+      setMessageError(error.message || 'Nachricht konnte nicht gesendet werden.')
+    } finally {
+      setSendingMessage(false)
+    }
   }
 
-  const handleSendTradeDraft = () => {
-    if (!tradeDraft) return
+  const handleRetryMessage = async () => {
+    if (!lastFailedDraft || sendingMessage) return
 
-    createTrade(
-      partnerId,
-      tradeDraft.give,
-      tradeDraft.want,
-      tradeNote
-    )
+    setSendingMessage(true)
+    setMessageError('')
 
-    setTradeNote('')
-    router.replace(`/nachrichten/${partnerId}`)
+    try {
+      await sendMessage(lastFailedDraft)
+      setLastFailedDraft(null)
+      setDraft('')
+    } catch (error) {
+      setMessageError(error.message || 'Nachricht konnte nicht erneut gesendet werden.')
+    } finally {
+      setSendingMessage(false)
+    }
+  }
+
+  const handleSendTradeDraft = async () => {
+    if (!tradeDraft || sendingTrade) return
+
+    setSendingTrade(true)
+    setTradeError('')
+
+    try {
+      await createTrade(
+        partnerId,
+        tradeDraft.give,
+        tradeDraft.want,
+        tradeNote
+      )
+
+      setTradeNote('')
+      router.replace(`/nachrichten/${partnerId}`)
+    } catch (error) {
+      setTradeError(error.message || 'Tauschanfrage konnte nicht gesendet werden.')
+    } finally {
+      setSendingTrade(false)
+    }
   }
 
   const handleDismissTradeDraft = () => {
@@ -192,7 +249,19 @@ function ChatDetailContent() {
         <div className={styles.searchInfo}>{deleteError}</div>
       ) : null}
 
-      {!partner ? (
+      {syncError ? (
+        <div className={styles.syncBanner}>
+          <div>
+            <strong>Verbindung wird gerade erneuert.</strong>
+            <span>Dein Chat aktualisiert sich automatisch wieder.</span>
+          </div>
+          <button className="btn btn-secondary btn-sm" onClick={() => refreshTrades({ silent: true })}>
+            Neu laden
+          </button>
+        </div>
+      ) : null}
+
+      {!partner || loading ? (
         <div className="empty-state">
           <span className="empty-state-icon"><ChatIcon size={40} strokeWidth={1.8} /></span>
           <span className="empty-state-title">Chat wird geladen</span>
@@ -229,12 +298,15 @@ function ChatDetailContent() {
                   rows={3}
                 />
               </div>
+              {tradeError ? (
+                <div className={styles.inlineError}>{tradeError}</div>
+              ) : null}
               <div className={styles.tradeActions}>
-                <button className="btn btn-secondary btn-sm" onClick={handleDismissTradeDraft}>
+                <button className="btn btn-secondary btn-sm" onClick={handleDismissTradeDraft} disabled={sendingTrade}>
                   Verwerfen
                 </button>
-                <button className="btn btn-primary btn-sm" onClick={handleSendTradeDraft}>
-                  Anfrage senden
+                <button className="btn btn-primary btn-sm" onClick={handleSendTradeDraft} disabled={sendingTrade}>
+                  {sendingTrade ? 'Sendet...' : 'Anfrage senden'}
                 </button>
               </div>
             </div>
@@ -297,7 +369,7 @@ function ChatDetailContent() {
           )}
 
           <div className={styles.threadCard}>
-            <div className={styles.messageList}>
+            <div className={styles.messageList} ref={messageListRef}>
               {threadMessages.length === 0 ? (
                 <div className={styles.threadEmpty}>
                   Starte den Chat direkt hier oder sende eine strukturierte Tauschanfrage.
@@ -317,7 +389,23 @@ function ChatDetailContent() {
                   )
                 })
               )}
+              <div ref={messageEndRef} />
             </div>
+
+            {messageError ? (
+              <div className={styles.inlineErrorRow}>
+                <span className={styles.inlineError}>{messageError}</span>
+                {lastFailedDraft ? (
+                  <button className="btn btn-secondary btn-sm" type="button" onClick={handleRetryMessage} disabled={sendingMessage}>
+                    Erneut senden
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+
+            {sendingMessage ? (
+              <div className={styles.composerStatus}>Nachricht wird gesendet...</div>
+            ) : null}
 
             <form className={styles.composer} onSubmit={handleSubmit}>
               <textarea
@@ -327,8 +415,8 @@ function ChatDetailContent() {
                 placeholder="Nachricht schreiben..."
                 rows={3}
               />
-              <button className="btn btn-primary" type="submit">
-                Senden
+              <button className="btn btn-primary" type="submit" disabled={sendingMessage || !draft.trim()}>
+                {sendingMessage ? 'Sendet...' : 'Senden'}
               </button>
             </form>
           </div>

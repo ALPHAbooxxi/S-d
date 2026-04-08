@@ -23,6 +23,9 @@ export default function NachrichtenPage() {
   const {
     getConversations,
     unreadCount,
+    loading,
+    syncError,
+    refreshTrades,
   } = useTrades()
   const conversations = getConversations()
   const [searchUsername, setSearchUsername] = useState('')
@@ -204,6 +207,22 @@ export default function NachrichtenPage() {
           </div>
         )}
       </div>
+
+      {syncError ? (
+        <div className={styles.syncBanner}>
+          <div>
+            <strong>Nachrichten sind gerade nicht ganz aktuell.</strong>
+            <span>Die Verbindung wird neu aufgebaut. Du kannst auch manuell aktualisieren.</span>
+          </div>
+          <button className="btn btn-secondary btn-sm" onClick={() => refreshTrades({ silent: true })}>
+            Aktualisieren
+          </button>
+        </div>
+      ) : null}
+
+      {loading && conversations.length === 0 ? (
+        <div className={styles.searchInfo}>Nachrichten werden geladen...</div>
+      ) : null}
 
       {conversations.length === 0 ? (
         <div className="empty-state">

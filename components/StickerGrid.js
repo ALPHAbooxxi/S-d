@@ -7,7 +7,7 @@ import styles from './StickerGrid.module.css'
 
 export default function StickerGrid() {
   const { stickers, incrementSticker, decrementSticker, bulkAdd, setQuantity } = useStickers()
-  const [activeCategory, setActiveCategory] = useState(ALBUM_CONFIG.categories[0]?.id || 'all')
+  const [activeCategory, setActiveCategory] = useState('all')
   const [quickInput, setQuickInput] = useState('')
   const [showQuickInput, setShowQuickInput] = useState(false)
   const [mode, setMode] = useState('add') // 'add' or 'remove'
@@ -132,6 +132,37 @@ export default function StickerGrid() {
 
   const selectedCategory = selectedSticker ? getCategoryForSticker(selectedSticker) : null
 
+  const renderStickerButton = (num) => {
+    const qty = stickers[num] || 0
+    const isDuplicate = qty > 1
+    const isOwned = qty >= 1
+
+    return (
+      <button
+        key={num}
+        className={`${styles.sticker} ${isOwned ? styles.owned : ''} ${isDuplicate ? styles.duplicate : ''} ${mode === 'remove' ? styles.removeMode : ''}`}
+        onClick={() => handleTap(num)}
+        onTouchStart={() => handleTouchStart(num)}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
+        onMouseDown={() => handleTouchStart(num)}
+        onMouseUp={handleTouchEnd}
+        onMouseLeave={handleTouchEnd}
+        id={`sticker-${num}`}
+      >
+        <span className={styles.stickerNumber}>{num}</span>
+        {isDuplicate && (
+          <span className={styles.duplicateBadge}>
+            {qty}x
+          </span>
+        )}
+        {isOwned && !isDuplicate && (
+          <span className={styles.checkmark}><CheckIcon size={12} strokeWidth={2.6} /></span>
+        )}
+      </button>
+    )
+  }
+
   return (
     <div className={styles.container}>
       {/* Mode Switcher */}
@@ -194,38 +225,6 @@ export default function StickerGrid() {
         </div>
       )}
 
-      <div className={styles.sectionCard}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <span className={styles.sectionEyebrow}>Albumbereiche</span>
-            <h3 className={styles.sectionTitle}>Sticker nach Bereich pflegen</h3>
-          </div>
-          <button
-            className={`${styles.overviewBtn} ${activeCategory === 'all' ? styles.overviewBtnActive : ''}`}
-            onClick={() => setActiveCategory('all')}
-          >
-            Alle 708
-          </button>
-        </div>
-
-        <div className={styles.sectionGrid}>
-          {categorySummaries.map((category) => (
-            <button
-              key={category.id}
-              className={`${styles.sectionItem} ${activeCategory === category.id ? styles.sectionItemActive : ''}`}
-              onClick={() => setActiveCategory(category.id)}
-            >
-              <strong>{category.shortName || category.name}</strong>
-              <span className={styles.sectionRange}>#{category.range[0]}-{category.range[1]}</span>
-              <div className={styles.sectionMeta}>
-                <span>{category.ownedCount}/{category.total}</span>
-                <span>{category.duplicateCount} doppelt</span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Category Filter */}
       <div className={styles.categoryScroll}>
         {categories.map(cat => (
@@ -254,38 +253,41 @@ export default function StickerGrid() {
       )}
 
       {/* Sticker Grid */}
-      <div className={styles.grid}>
-        {visibleStickers.map(num => {
-          const qty = stickers[num] || 0
-          const isDuplicate = qty > 1
-          const isOwned = qty >= 1
+      {activeCategory === 'all' ? (
+        <div className={styles.albumSections}>
+          {categorySummaries.map((category) => {
+            const sectionNumbers = Array.from(
+              { length: category.range[1] - category.range[0] + 1 },
+              (_, index) => category.range[0] + index
+            )
 
-          return (
-            <button
-              key={num}
-              className={`${styles.sticker} ${isOwned ? styles.owned : ''} ${isDuplicate ? styles.duplicate : ''} ${mode === 'remove' ? styles.removeMode : ''}`}
-              onClick={() => handleTap(num)}
-              onTouchStart={() => handleTouchStart(num)}
-              onTouchEnd={handleTouchEnd}
-              onTouchCancel={handleTouchEnd}
-              onMouseDown={() => handleTouchStart(num)}
-              onMouseUp={handleTouchEnd}
-              onMouseLeave={handleTouchEnd}
-              id={`sticker-${num}`}
-            >
-              <span className={styles.stickerNumber}>{num}</span>
-              {isDuplicate && (
-                <span className={styles.duplicateBadge}>
-                  {qty}×
-                </span>
-              )}
-              {isOwned && !isDuplicate && (
-                <span className={styles.checkmark}><CheckIcon size={12} strokeWidth={2.6} /></span>
-              )}
-            </button>
-          )
-        })}
-      </div>
+            return (
+              <section key={category.id} className={styles.albumSection}>
+                <div className={styles.albumSectionHeader}>
+                  <div>
+                    <strong className={styles.albumSectionTitle}>{category.name}</strong>
+                    <span className={styles.albumSectionRange}>
+                      #{category.range[0]}-{category.range[1]}
+                    </span>
+                  </div>
+                  <div className={styles.albumSectionMeta}>
+                    <span>{category.ownedCount}/{category.total}</span>
+                    <span>{category.duplicateCount} doppelt</span>
+                  </div>
+                </div>
+
+                <div className={styles.grid}>
+                  {sectionNumbers.map(renderStickerButton)}
+                </div>
+              </section>
+            )
+          })}
+        </div>
+      ) : (
+        <div className={styles.grid}>
+          {visibleStickers.map(renderStickerButton)}
+        </div>
+      )}
 
       {/* Legend */}
       <div className={styles.legend}>

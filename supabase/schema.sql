@@ -82,11 +82,12 @@ CREATE INDEX idx_user_stickers_number ON public.user_stickers(sticker_number);
 CREATE INDEX idx_offers_user ON public.offers(user_id);
 CREATE INDEX idx_offers_type_status ON public.offers(offer_type, status);
 CREATE INDEX idx_offers_stickers ON public.offers USING GIN(sticker_numbers);
-CREATE INDEX idx_trade_requests_sender ON public.trade_requests(sender_id);
-CREATE INDEX idx_trade_requests_receiver ON public.trade_requests(receiver_id);
+CREATE INDEX idx_trade_requests_sender_updated_at ON public.trade_requests(sender_id, updated_at DESC);
+CREATE INDEX idx_trade_requests_receiver_updated_at ON public.trade_requests(receiver_id, updated_at DESC);
 CREATE INDEX idx_trade_requests_offer ON public.trade_requests(offer_id);
-CREATE INDEX idx_messages_sender ON public.messages(sender_id);
-CREATE INDEX idx_messages_receiver ON public.messages(receiver_id);
+CREATE INDEX idx_messages_sender_created_at ON public.messages(sender_id, created_at DESC);
+CREATE INDEX idx_messages_receiver_created_at ON public.messages(receiver_id, created_at DESC);
+CREATE INDEX idx_messages_trade_request_created_at ON public.messages(trade_request_id, created_at DESC) WHERE trade_request_id IS NOT NULL;
 CREATE INDEX idx_messages_unread ON public.messages(receiver_id, is_read) WHERE NOT is_read;
 
 -- ============================================

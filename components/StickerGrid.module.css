@@ -273,6 +273,55 @@
   font-weight: 700;
 }
 
+.albumSections {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.albumSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, rgba(255, 254, 247, 0.66) 0%, rgba(255, 255, 255, 0.98) 100%);
+  border: 1px solid rgba(234, 200, 1, 0.18);
+}
+
+.albumSectionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.albumSectionTitle {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.albumSectionRange {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.albumSectionMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 /* ===== Sticker Grid ===== */
 .grid {
   display: grid;
@@ -413,12 +462,14 @@
 
 @media (max-width: 640px) {
   .sectionHeader,
-  .activeSummary {
+  .activeSummary,
+  .albumSectionHeader {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .activeSummaryMeta {
+  .activeSummaryMeta,
+  .albumSectionMeta {
     align-items: flex-start;
   }
 }

@@ -1,17 +1,41 @@
 'use client'
 
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ChatIcon, CollectionIcon, SearchIcon, TrophyIcon } from '@/components/AppIcons'
+import { createClient } from '@/lib/supabase/client'
+import { ALBUM_CONFIG } from '@/lib/album-config'
 import styles from './LandingPage.module.css'
 
 export default function LandingPage() {
-  const stats = {
-    users:
-      typeof window === 'undefined'
-        ? 0
-        : JSON.parse(localStorage.getItem('svd_all_users') || '[]').length,
-  }
+  const supabase = useMemo(() => createClient(), [])
+  const [profileCount, setProfileCount] = useState(null)
+
+  useEffect(() => {
+    let active = true
+
+    async function loadProfileCount() {
+      try {
+        const { count, error } = await supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+
+        if (!active || error) return
+        setProfileCount(count || 0)
+      } catch {
+        if (active) {
+          setProfileCount(null)
+        }
+      }
+    }
+
+    void loadProfileCount()
+
+    return () => {
+      active = false
+    }
+  }, [supabase])
 
   return (
     <div className={styles.page}>
@@ -57,17 +81,17 @@ export default function LandingPage() {
         {/* Stats bar */}
         <div className={styles.statsBar}>
           <div className={styles.stat}>
-            <span className={styles.statNum}>{stats.users}</span>
+            <span className={styles.statNum}>{profileCount ?? '...'}</span>
             <span className={styles.statLabel}>Sammler</span>
           </div>
           <div className={styles.statDiv} />
           <div className={styles.stat}>
-            <span className={styles.statNum}>708</span>
+            <span className={styles.statNum}>{ALBUM_CONFIG.totalStickers}</span>
             <span className={styles.statLabel}>Sticker</span>
           </div>
           <div className={styles.statDiv} />
           <div className={styles.stat}>
-            <span className={styles.statNum}>23</span>
+            <span className={styles.statNum}>{ALBUM_CONFIG.categories.length}</span>
             <span className={styles.statLabel}>Kategorien</span>
           </div>
         </div>

@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useStickers, ALBUM_CONFIG } from '@/lib/stickers-context'
 import { usePushNotifications } from '@/lib/use-push-notifications'
 import { BellIcon, CheckIcon } from '@/components/AppIcons'
+import AlbumOverview from '@/components/AlbumOverview'
 import ProgressRing from '@/components/ProgressRing'
 import ProfileShareCard from '@/components/ProfileShareCard'
 import styles from './profil.module.css'
@@ -164,6 +165,10 @@ export default function ProfilPage() {
           <span className={styles.statSmall}>{duplicateStickers.length} versch.</span>
           <span className={styles.statLabel}>Doppelte</span>
         </div>
+      </div>
+
+      <div className={styles.albumOverviewWrap}>
+        <AlbumOverview />
       </div>
 
       {/* Profile Settings */}

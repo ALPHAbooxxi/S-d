@@ -3,7 +3,6 @@
 import { useAuth } from '@/lib/auth-context'
 import { useStickers, ALBUM_CONFIG } from '@/lib/stickers-context'
 import { SparkIcon } from '@/components/AppIcons'
-import AlbumOverview from '@/components/AlbumOverview'
 import ProgressRing from '@/components/ProgressRing'
 import StickerGrid from '@/components/StickerGrid'
 import styles from './sammlung.module.css'
@@ -39,10 +38,6 @@ export default function SammlungPage() {
             </div>
           </div>
         </div>
-      </div>
-
-      <div className={styles.overviewSection}>
-        <AlbumOverview />
       </div>
 
       <div className={styles.gridSection}>

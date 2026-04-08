@@ -57,6 +57,11 @@
   gap: 8px;
 }
 
+.albumOverviewWrap {
+  display: flex;
+  flex-direction: column;
+}
+
 .statCard {
   display: flex;
   flex-direction: column;
