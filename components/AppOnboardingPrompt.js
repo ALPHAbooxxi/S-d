@@ -23,6 +23,7 @@ export default function AppOnboardingPrompt() {
     busy,
     error,
     requestPermission,
+    reconnectPush,
   } = usePushNotifications()
   const [open, setOpen] = useState(() => (
     typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY)
@@ -70,6 +71,11 @@ export default function AppOnboardingPrompt() {
   }
 
   const handleEnablePush = async () => {
+    if (permission === 'granted' && !connected) {
+      await reconnectPush()
+      return
+    }
+
     await requestPermission()
   }
 

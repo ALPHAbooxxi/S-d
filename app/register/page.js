@@ -57,7 +57,7 @@ export default function RegisterPage() {
         setSuccess(`Account angelegt. Bitte bestätige jetzt die E-Mail an ${result.email} und melde dich danach an.`)
         return
       }
-      router.push('/sammlung')
+      router.push('/dashboard')
     } catch (err) {
       setError(err.message)
     } finally {

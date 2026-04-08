@@ -24,7 +24,7 @@ function LoginContent() {
 
     try {
       await login({ email, password })
-      router.push('/sammlung')
+      router.push('/dashboard')
     } catch (err) {
       setError(err.message)
     } finally {

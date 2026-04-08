@@ -8,7 +8,6 @@ import { useAuth } from '@/lib/auth-context'
 import { useStickers, ALBUM_CONFIG } from '@/lib/stickers-context'
 import { usePushNotifications } from '@/lib/use-push-notifications'
 import { BellIcon, CheckIcon } from '@/components/AppIcons'
-import AlbumOverview from '@/components/AlbumOverview'
 import ProgressRing from '@/components/ProgressRing'
 import ProfileShareCard from '@/components/ProfileShareCard'
 import styles from './profil.module.css'
@@ -197,10 +196,6 @@ export default function ProfilPage() {
         </div>
       </div>
 
-      <div className={styles.albumOverviewWrap}>
-        <AlbumOverview />
-      </div>
-
       {/* Profile Settings */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
@@ -251,7 +246,7 @@ export default function ProfilPage() {
           <div>
             <h2 className={styles.sectionTitle}>Einstellungen</h2>
             <p className={styles.accordionText}>
-              E-Mail, Passwort und Account-Verwaltung
+              E-Mail, Passwort, Benachrichtigungen und Account-Verwaltung
             </p>
           </div>
           <span className={`${styles.accordionIcon} ${settingsOpen ? styles.accordionIconOpen : ''}`}>
@@ -315,6 +310,111 @@ export default function ProfilPage() {
 
               <div className={styles.separator} />
 
+              {pushSupported && (
+                <>
+                  <div className={styles.settingsBlock}>
+                    <div className={styles.settingsBlockHeader}>
+                      <div className={styles.settingsBlockTitleRow}>
+                        <span className={styles.pushIcon}><BellIcon size={18} strokeWidth={1.8} /></span>
+                        <div>
+                          <h3 className={styles.settingsBlockTitle}>Benachrichtigungen</h3>
+                          <p className={styles.settingsBlockCopy}>
+                            Aktiviere Push-Nachrichten für neue Nachrichten und Tauschanfragen direkt in der App.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.pushRow}>
+                      <div className={styles.pushInfo}>
+                        <div>
+                          <span className={styles.pushLabel}>Push-Benachrichtigungen</span>
+                          <span className={styles.pushDesc}>
+                            {pushPermission === 'granted'
+                              ? pushConnected
+                                ? 'Verbunden – dieses Gerät kann Push-Nachrichten empfangen'
+                                : 'Browser erlaubt Push, aber dieses Gerät ist noch nicht sauber verbunden'
+                              : pushPermission === 'denied'
+                              ? 'Blockiert – aktiviere sie in deinen Browser-Einstellungen'
+                              : 'Erhalte Benachrichtigungen bei neuen Nachrichten und Tauschanfragen'
+                            }
+                          </span>
+                        </div>
+                      </div>
+                      {pushPermission !== 'granted' && pushPermission !== 'denied' && (
+                        <button className="btn btn-primary btn-sm" onClick={handlePushToggle} id="enable-push" disabled={pushBusy}>
+                          {pushBusy ? 'Aktiviert...' : 'Aktivieren'}
+                        </button>
+                      )}
+                      {pushPermission === 'granted' && (
+                        <div className={styles.pushActions}>
+                          {pushConnected ? (
+                            <span className={styles.pushActive}><CheckIcon size={14} strokeWidth={2.2} />Verbunden</span>
+                          ) : (
+                            <span className={styles.pushPending}>Noch nicht verbunden</span>
+                          )}
+                          <button className="btn btn-secondary btn-sm" onClick={handlePushToggle} disabled={pushBusy || pushConnected}>
+                            {pushBusy && !pushConnected ? 'Verbindet...' : 'Verbinden'}
+                          </button>
+                          <button className="btn btn-secondary btn-sm" onClick={handlePushReconnect} disabled={pushBusy}>
+                            Neu verbinden
+                          </button>
+                          <button className="btn btn-secondary btn-sm" onClick={handlePushStatusRefresh} disabled={pushBusy}>
+                            Status prüfen
+                          </button>
+                          <button className="btn btn-secondary btn-sm" onClick={handlePushTest} disabled={pushBusy || !pushSubscription}>
+                            Test senden
+                          </button>
+                          <button className="btn btn-ghost btn-sm" onClick={handlePushDisable} disabled={pushBusy || !pushSubscription}>
+                            Dieses Gerät abmelden
+                          </button>
+                        </div>
+                      )}
+                      {pushPermission === 'denied' && (
+                        <span className={styles.pushDenied}>Blockiert</span>
+                      )}
+                    </div>
+
+                    <div className={styles.pushStatusGrid}>
+                      <div className={styles.pushStatusItem}>
+                        <span className={styles.pushStatusLabel}>Browser-Erlaubnis</span>
+                        <strong>{pushPermission === 'granted' ? 'Erteilt' : pushPermission === 'denied' ? 'Blockiert' : 'Offen'}</strong>
+                      </div>
+                      <div className={styles.pushStatusItem}>
+                        <span className={styles.pushStatusLabel}>Gerät verbunden</span>
+                        <strong>{pushConnected ? 'Ja' : 'Nein'}</strong>
+                      </div>
+                      <div className={styles.pushStatusItem}>
+                        <span className={styles.pushStatusLabel}>Server bereit</span>
+                        <strong>{serverConfigured ? 'Ja' : 'Nein'}</strong>
+                      </div>
+                      <div className={styles.pushStatusItem}>
+                        <span className={styles.pushStatusLabel}>Gespeicherte Endpunkte</span>
+                        <strong>{serverSubscriptionCount}</strong>
+                      </div>
+                    </div>
+
+                    {pushPermission === 'granted' && !pushConnected ? (
+                      <div className={styles.pushHint}>
+                        Wenn du iPhone oder iPad nutzt, muss die App über den Home-Bildschirm geöffnet werden. In einem normalen Safari-Tab kommen Web-Pushes dort nicht an.
+                      </div>
+                    ) : null}
+                    {pushMessage ? (
+                      <div className={styles.feedbackSuccess} style={{ marginTop: 16, marginBottom: 0 }}>
+                        {pushMessage}
+                      </div>
+                    ) : null}
+                    {pushError ? (
+                      <div className={styles.feedbackError} style={{ marginTop: 16, marginBottom: 0 }}>
+                        {pushError}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className={styles.separator} />
+                </>
+              )}
+
               <div className={styles.actionList}>
                 <button className={`${styles.actionBtn} ${styles.actionWarn}`} onClick={() => setShowConfirmClear(true)}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
@@ -345,98 +445,6 @@ export default function ProfilPage() {
           duplicateStickers={duplicateStickers}
         />
       </div>
-
-      {/* Push Notifications */}
-      {pushSupported && (
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Benachrichtigungen</h2>
-          </div>
-          <div className={styles.pushRow}>
-            <div className={styles.pushInfo}>
-              <span className={styles.pushIcon}><BellIcon size={18} strokeWidth={1.8} /></span>
-              <div>
-                <span className={styles.pushLabel}>Push-Benachrichtigungen</span>
-                <span className={styles.pushDesc}>
-                  {pushPermission === 'granted'
-                    ? pushConnected
-                      ? 'Verbunden – dieses Gerät kann Push-Nachrichten empfangen'
-                      : 'Browser erlaubt Push, aber dieses Gerät ist noch nicht sauber verbunden'
-                    : pushPermission === 'denied'
-                    ? 'Blockiert – aktiviere sie in deinen Browser-Einstellungen'
-                    : 'Erhalte Benachrichtigungen bei neuen Nachrichten und Tauschanfragen'
-                  }
-                </span>
-              </div>
-            </div>
-            {pushPermission !== 'granted' && pushPermission !== 'denied' && (
-              <button className="btn btn-primary btn-sm" onClick={handlePushToggle} id="enable-push" disabled={pushBusy}>
-                {pushBusy ? 'Aktiviert...' : 'Aktivieren'}
-              </button>
-            )}
-            {pushPermission === 'granted' && (
-              <div className={styles.pushActions}>
-                {pushConnected ? (
-                  <span className={styles.pushActive}><CheckIcon size={14} strokeWidth={2.2} />Verbunden</span>
-                ) : (
-                  <span className={styles.pushPending}>Noch nicht verbunden</span>
-                )}
-                <button className="btn btn-secondary btn-sm" onClick={handlePushToggle} disabled={pushBusy || pushConnected}>
-                  {pushBusy && !pushConnected ? 'Verbindet...' : 'Verbinden'}
-                </button>
-                <button className="btn btn-secondary btn-sm" onClick={handlePushReconnect} disabled={pushBusy}>
-                  Neu verbinden
-                </button>
-                <button className="btn btn-secondary btn-sm" onClick={handlePushStatusRefresh} disabled={pushBusy}>
-                  Status pruefen
-                </button>
-                <button className="btn btn-secondary btn-sm" onClick={handlePushTest} disabled={pushBusy || !pushSubscription}>
-                  Test senden
-                </button>
-                <button className="btn btn-ghost btn-sm" onClick={handlePushDisable} disabled={pushBusy || !pushSubscription}>
-                  Dieses Gerät abmelden
-                </button>
-              </div>
-            )}
-            {pushPermission === 'denied' && (
-              <span className={styles.pushDenied}>Blockiert</span>
-            )}
-          </div>
-          <div className={styles.pushStatusGrid}>
-            <div className={styles.pushStatusItem}>
-              <span className={styles.pushStatusLabel}>Browser-Erlaubnis</span>
-              <strong>{pushPermission === 'granted' ? 'Erteilt' : pushPermission === 'denied' ? 'Blockiert' : 'Offen'}</strong>
-            </div>
-            <div className={styles.pushStatusItem}>
-              <span className={styles.pushStatusLabel}>Gerät verbunden</span>
-              <strong>{pushConnected ? 'Ja' : 'Nein'}</strong>
-            </div>
-            <div className={styles.pushStatusItem}>
-              <span className={styles.pushStatusLabel}>Server bereit</span>
-              <strong>{serverConfigured ? 'Ja' : 'Nein'}</strong>
-            </div>
-            <div className={styles.pushStatusItem}>
-              <span className={styles.pushStatusLabel}>Gespeicherte Endpunkte</span>
-              <strong>{serverSubscriptionCount}</strong>
-            </div>
-          </div>
-          {pushPermission === 'granted' && !pushConnected ? (
-            <div className={styles.pushHint}>
-              Wenn du iPhone oder iPad nutzt, muss die App über den Home-Bildschirm geöffnet werden. In einem normalen Safari-Tab kommen Web-Pushes dort nicht an.
-            </div>
-          ) : null}
-          {pushMessage ? (
-            <div className={styles.feedbackSuccess} style={{ marginTop: 16, marginBottom: 0 }}>
-              {pushMessage}
-            </div>
-          ) : null}
-          {pushError ? (
-            <div className={styles.feedbackError} style={{ marginTop: 16, marginBottom: 0 }}>
-              {pushError}
-            </div>
-          ) : null}
-        </div>
-      )}
 
       {/* Legal Links */}
       <div className={styles.legalLinks}>

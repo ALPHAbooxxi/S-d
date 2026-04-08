@@ -7,6 +7,18 @@ import styles from './BottomNav.module.css'
 
 const navItems = [
   {
+    href: '/dashboard',
+    label: 'Dashboard',
+    icon: (active) => (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'var(--svd-yellow-500)' : 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 13h8V3H3z" />
+        <path d="M13 21h8v-6h-8z" />
+        <path d="M13 11h8V3h-8z" />
+        <path d="M3 21h8v-4H3z" />
+      </svg>
+    ),
+  },
+  {
     href: '/sammlung',
     label: 'Sammlung',
     icon: (active) => (
@@ -20,7 +32,7 @@ const navItems = [
   },
   {
     href: '/tauschboerse',
-    label: 'Tauschbörse',
+    label: 'Tausch',
     icon: (active) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'var(--svd-yellow-500)' : 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M7 16l-4-4 4-4" />

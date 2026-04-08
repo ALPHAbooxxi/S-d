@@ -6,7 +6,7 @@ const supabaseKey =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export const createClient = (request: NextRequest) => {
+export const createClient = async (request: NextRequest) => {
   // Create an unmodified response
   let supabaseResponse = NextResponse.next({
     request: {
@@ -34,6 +34,9 @@ export const createClient = (request: NextRequest) => {
       },
     },
   );
+
+  // Important for SSR auth persistence: refresh and write cookies on every request.
+  await supabase.auth.getUser()
 
   return supabaseResponse
 };

@@ -16,6 +16,9 @@ export default function TauschboersePage() {
   const supabase = useMemo(() => createClient(), [])
   const [searchNumber, setSearchNumber] = useState('')
   const [activeTab, setActiveTab] = useState('matches')
+  const [selectedMatch, setSelectedMatch] = useState(null)
+  const [selectedGive, setSelectedGive] = useState([])
+  const [selectedWant, setSelectedWant] = useState([])
   const [directory, setDirectory] = useState(() => (user ? loadUserDirectory(user.id) : []))
   const [directoryLoading, setDirectoryLoading] = useState(false)
   const [directoryError, setDirectoryError] = useState('')
@@ -66,15 +69,41 @@ export default function TauschboersePage() {
     router.push(`/nachrichten/${partnerId}`)
   }
 
-  const handlePrepareTrade = (partner) => {
+  const openMatchDetails = (match) => {
+    setSelectedMatch(match)
+    setSelectedGive(match.iCanGive || [])
+    setSelectedWant(match.theyCanGive || [])
+  }
+
+  const closeMatchDetails = () => {
+    setSelectedMatch(null)
+    setSelectedGive([])
+    setSelectedWant([])
+  }
+
+  const toggleStickerSelection = (number, selection, setSelection) => {
+    setSelection((current) =>
+      current.includes(number)
+        ? current.filter((entry) => entry !== number)
+        : [...current, number].sort((a, b) => a - b)
+    )
+  }
+
+  const handlePrepareTrade = (partner, options = {}) => {
+    const giveList = options.give ?? partner.iCanGive ?? []
+    const wantList = options.want ?? partner.theyCanGive ?? []
     const params = new URLSearchParams({
       intent: 'trade',
-      give: (partner.iCanGive?.slice(0, 8) || []).join(','),
-      want: (partner.theyCanGive?.slice(0, 8) || []).join(','),
+      give: giveList.join(','),
+      want: wantList.join(','),
     })
 
     router.push(`/nachrichten/${partner.userId}?${params.toString()}`)
   }
+
+  const selectedTradeReady =
+    selectedMatch &&
+    (selectedGive.length > 0 || selectedWant.length > 0)
 
   return (
     <div className={styles.page}>
@@ -173,7 +202,20 @@ export default function TauschboersePage() {
                 </div>
               ) : (
                 filteredMatches.map((match, idx) => (
-                  <div key={match.userId} className={styles.matchCard} style={{ animationDelay: `${idx * 50}ms` }}>
+                  <div
+                    key={match.userId}
+                    className={styles.matchCard}
+                    style={{ animationDelay: `${idx * 50}ms` }}
+                    onClick={() => openMatchDetails(match)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        openMatchDetails(match)
+                      }
+                    }}
+                  >
                     <div className={styles.matchHeader}>
                       <div className={styles.matchAvatar}>
                         {(match.displayName || match.username).charAt(0).toUpperCase()}
@@ -222,12 +264,18 @@ export default function TauschboersePage() {
                     </div>
 
                     <div className={styles.matchActions}>
-                      <span className={styles.contactBadge}>Erst Match pruefen, dann im Chat konkret anfragen</span>
-                      <button className="btn btn-secondary btn-sm" onClick={() => handleOpenConversation(match.userId)}>
+                      <span className={styles.contactBadge}>Tippe auf die Karte und wähle genau aus, was du tauschen möchtest.</span>
+                      <button className="btn btn-secondary btn-sm" onClick={(event) => {
+                        event.stopPropagation()
+                        handleOpenConversation(match.userId)
+                      }}>
                         Chat öffnen
                       </button>
-                      <button className="btn btn-dark btn-sm" id={`trade-${match.userId}`} onClick={() => handlePrepareTrade(match)}>
-                        Tausch vorbereiten
+                      <button className="btn btn-dark btn-sm" id={`trade-${match.userId}`} onClick={(event) => {
+                        event.stopPropagation()
+                        openMatchDetails(match)
+                      }}>
+                        Angebot prüfen
                       </button>
                     </div>
                   </div>
@@ -260,6 +308,108 @@ export default function TauschboersePage() {
             </div>
           )}
         </>
+      )}
+
+      {selectedMatch && (
+        <div className="modal-overlay" onClick={closeMatchDetails}>
+          <div className={`modal-content ${styles.matchSheet}`} onClick={(event) => event.stopPropagation()}>
+            <div className="modal-handle" />
+            <div className={styles.sheetHeader}>
+              <div className={styles.sheetIdentity}>
+                <div className={styles.matchAvatar}>
+                  {(selectedMatch.displayName || selectedMatch.username).charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h2 className={styles.sheetTitle}>{selectedMatch.displayName || selectedMatch.username}</h2>
+                  <p className={styles.sheetSubtitle}>@{selectedMatch.username} · {selectedMatch.totalTradeable} mögliche Sticker</p>
+                </div>
+              </div>
+              <button className={styles.sheetClose} onClick={closeMatchDetails} aria-label="Schließen">
+                <CloseIcon size={16} strokeWidth={2.4} />
+              </button>
+            </div>
+
+            <div className={styles.sheetStats}>
+              <div className={styles.sheetStat}>
+                <strong>{selectedMatch.theyCanGive.length}</strong>
+                <span>für dich möglich</span>
+              </div>
+              <div className={styles.sheetStat}>
+                <strong>{selectedMatch.iCanGive.length}</strong>
+                <span>von dir möglich</span>
+              </div>
+              <div className={styles.sheetStat}>
+                <strong>{selectedMatch.mutualCount}</strong>
+                <span>gute Tausche</span>
+              </div>
+            </div>
+
+            <div className={styles.sheetSection}>
+              <div className={styles.sheetSectionTop}>
+                <div>
+                  <span className={styles.sheetEyebrow}>Du bekommst</span>
+                  <h3 className={styles.sheetSectionTitle}>Wähle aus, was du haben möchtest</h3>
+                </div>
+                <span className={styles.selectionCount}>{selectedWant.length} gewählt</span>
+              </div>
+              {selectedMatch.theyCanGive.length === 0 ? (
+                <p className={styles.sheetEmpty}>Dieser Kontakt hat aktuell keinen deiner fehlenden Sticker doppelt.</p>
+              ) : (
+                <div className={styles.sheetChipGrid}>
+                  {selectedMatch.theyCanGive.map((number) => (
+                    <button
+                      key={`want-${number}`}
+                      type="button"
+                      className={`${styles.selectChip} ${styles.selectChipReceive} ${selectedWant.includes(number) ? styles.selectChipActive : ''}`}
+                      onClick={() => toggleStickerSelection(number, selectedWant, setSelectedWant)}
+                    >
+                      #{number}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className={styles.sheetSection}>
+              <div className={styles.sheetSectionTop}>
+                <div>
+                  <span className={styles.sheetEyebrow}>Du gibst</span>
+                  <h3 className={styles.sheetSectionTitle}>Wähle aus, was du dafür tauschen würdest</h3>
+                </div>
+                <span className={styles.selectionCount}>{selectedGive.length} gewählt</span>
+              </div>
+              {selectedMatch.iCanGive.length === 0 ? (
+                <p className={styles.sheetEmpty}>Du hast für diesen Kontakt aktuell keinen passenden doppelten Sticker.</p>
+              ) : (
+                <div className={styles.sheetChipGrid}>
+                  {selectedMatch.iCanGive.map((number) => (
+                    <button
+                      key={`give-${number}`}
+                      type="button"
+                      className={`${styles.selectChip} ${styles.selectChipGive} ${selectedGive.includes(number) ? styles.selectChipActive : ''}`}
+                      onClick={() => toggleStickerSelection(number, selectedGive, setSelectedGive)}
+                    >
+                      #{number}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className={styles.sheetActions}>
+              <button className="btn btn-secondary btn-sm" onClick={() => handleOpenConversation(selectedMatch.userId)}>
+                Chat öffnen
+              </button>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={() => handlePrepareTrade(selectedMatch, { give: selectedGive, want: selectedWant })}
+                disabled={!selectedTradeReady}
+              >
+                Auswahl übernehmen
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

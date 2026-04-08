@@ -6,6 +6,7 @@
   gap: 16px;
   max-width: 600px;
   margin: 0 auto;
+  touch-action: pan-y;
 }
 
 .header {
@@ -212,6 +213,8 @@
   gap: 12px;
   animation: fadeInUp 400ms ease-out backwards;
   transition: all var(--transition-base);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 @keyframes fadeInUp {
@@ -229,6 +232,11 @@
 .matchCard:hover {
   box-shadow: var(--shadow-md);
   border-color: var(--svd-yellow-300);
+}
+
+.matchCard:focus-visible {
+  outline: 2px solid var(--svd-yellow-500);
+  outline-offset: 2px;
 }
 
 .matchHeader {
@@ -400,4 +408,183 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+}
+
+.matchSheet {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: min(82dvh, 760px);
+  overflow: auto;
+}
+
+.sheetHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sheetIdentity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sheetTitle {
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.sheetSubtitle {
+  margin-top: 3px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.sheetClose {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  background: var(--gray-50);
+  flex-shrink: 0;
+}
+
+.sheetStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sheetStat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 10px;
+  border-radius: var(--radius-md);
+  background: var(--gray-50);
+  border: 1px solid var(--border-light);
+  text-align: center;
+}
+
+.sheetStat strong {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--svd-dark-700);
+}
+
+.sheetStat span {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.sheetSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+}
+
+.sheetSectionTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sheetEyebrow {
+  display: inline-flex;
+  margin-bottom: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.sheetSectionTitle {
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.selectionCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--gray-50);
+  border: 1px solid var(--border-light);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.sheetChipGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.selectChip {
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-light);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  transition:
+    transform var(--transition-fast),
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.selectChipReceive {
+  background: var(--success-light);
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.selectChipGive {
+  background: var(--warning-light);
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.selectChipActive {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--svd-dark-700);
+}
+
+.sheetEmpty {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.sheetActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-top: 4px;
+  position: sticky;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), var(--bg-secondary) 40%);
 }
