@@ -25,16 +25,30 @@ function ResetPasswordContent() {
 
     async function prepareRecovery() {
       const code = searchParams.get('code')
+      const tokenHash = searchParams.get('token_hash')
+      const type = searchParams.get('type')
 
       try {
-        if (code) {
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-          if (exchangeError) throw exchangeError
-        } else {
-          const { data } = await supabase.auth.getSession()
-          if (!data.session) {
-            setError('Der Reset-Link ist ungültig oder abgelaufen. Bitte fordere einen neuen Link an.')
+        if (code || (tokenHash && type)) {
+          const nextParams = new URLSearchParams()
+          nextParams.set('next', '/passwort-zuruecksetzen')
+
+          if (code) {
+            nextParams.set('code', code)
           }
+
+          if (tokenHash && type) {
+            nextParams.set('token_hash', tokenHash)
+            nextParams.set('type', type)
+          }
+
+          router.replace(`/auth/confirm?${nextParams.toString()}`)
+          return
+        }
+
+        const { data } = await supabase.auth.getSession()
+        if (!data.session && active) {
+          setError('Der Reset-Link ist ungültig oder abgelaufen. Bitte fordere einen neuen Link an.')
         }
 
         if (active) {
@@ -62,7 +76,7 @@ function ResetPasswordContent() {
       active = false
       subscription.unsubscribe()
     }
-  }, [searchParams, supabase])
+  }, [router, searchParams, supabase])
 
   const handleSubmit = async (event) => {
     event.preventDefault()
