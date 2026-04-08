@@ -33,7 +33,7 @@ function ResetPasswordContent() {
         } else {
           const { data } = await supabase.auth.getSession()
           if (!data.session) {
-            setError('Der Reset-Link ist ungueltig oder abgelaufen. Bitte fordere einen neuen Link an.')
+            setError('Der Reset-Link ist ungültig oder abgelaufen. Bitte fordere einen neuen Link an.')
           }
         }
 
@@ -42,7 +42,7 @@ function ResetPasswordContent() {
         }
       } catch (err) {
         if (active) {
-          setError(err.message || 'Der Reset-Link ist ungueltig oder abgelaufen.')
+          setError(err.message || 'Der Reset-Link ist ungültig oder abgelaufen.')
         }
       }
     }
@@ -75,7 +75,7 @@ function ResetPasswordContent() {
     }
 
     if (password !== passwordConfirm) {
-      setError('Passwoerter stimmen nicht ueberein.')
+      setError('Passwörter stimmen nicht überein.')
       return
     }
 
@@ -139,7 +139,7 @@ function ResetPasswordContent() {
           </div>
 
           <div className="input-group">
-            <label htmlFor="confirm-new-password">Passwort bestaetigen</label>
+            <label htmlFor="confirm-new-password">Passwort bestätigen</label>
             <input
               id="confirm-new-password"
               type="password"

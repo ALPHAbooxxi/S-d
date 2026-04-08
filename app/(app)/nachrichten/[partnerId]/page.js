@@ -223,7 +223,7 @@ function ChatDetailContent() {
   return (
     <div className={styles.detailPage}>
       <div className={styles.detailTopBar}>
-        <button className={styles.detailBack} onClick={handleBack} aria-label="Zurueck zu Nachrichten">
+        <button className={styles.detailBack} onClick={handleBack} aria-label="Zurück zu Nachrichten">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5" />
             <path d="M12 19l-7-7 7-7" />
@@ -241,7 +241,7 @@ function ChatDetailContent() {
           </div>
         )}
         <button className="btn btn-secondary btn-sm" onClick={() => setShowDeleteModal(true)}>
-          Chat loeschen
+          Chat löschen
         </button>
       </div>
 
@@ -427,16 +427,16 @@ function ChatDetailContent() {
         <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
           <div className="modal-content" onClick={(event) => event.stopPropagation()}>
             <div className="modal-handle" />
-            <h3 style={{ marginBottom: 8 }}>Chat loeschen?</h3>
+            <h3 style={{ marginBottom: 8 }}>Chat löschen?</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: 20, lineHeight: 1.5 }}>
-              Dieser Chat und alle zugehoerigen Tauschanfragen werden entfernt.
+              Dieser Chat und alle zugehörigen Tauschanfragen werden entfernt.
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="btn btn-secondary btn-full" onClick={() => setShowDeleteModal(false)} disabled={deletingConversation}>
                 Abbrechen
               </button>
               <button className="btn btn-full" style={{ background: 'var(--error)', color: 'white' }} onClick={handleDeleteConversation} disabled={deletingConversation}>
-                {deletingConversation ? 'Loescht...' : 'Ja, Chat loeschen'}
+                {deletingConversation ? 'Löscht...' : 'Ja, Chat löschen'}
               </button>
             </div>
           </div>

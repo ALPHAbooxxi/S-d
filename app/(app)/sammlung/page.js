@@ -49,7 +49,7 @@ export default function SammlungPage() {
           <div className={styles.duplicatesIcon}><SparkIcon size={20} strokeWidth={1.8} /></div>
           <div>
             <strong>Tipp:</strong> Du hast {totalDuplicates} doppelte Sticker. 
-            Geh zur Tauschboerse, um passende Nutzer zu finden und direkt in der App eine Tauschanfrage zu senden.
+            Geh zur Tauschbörse, um passende Nutzer zu finden und direkt in der App eine Tauschanfrage zu senden.
           </div>
         </div>
       )}

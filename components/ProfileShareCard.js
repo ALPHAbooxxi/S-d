@@ -105,7 +105,7 @@ export default function ProfileShareCard({
       </div>
 
       <p className={styles.description}>
-        Der Code verlinkt auf dein oeffentliches Profil mit Fortschritt und doppelten
+        Der Code verlinkt auf dein öffentliches Profil mit Fortschritt und doppelten
         Stickern. So kannst du deinen Stand direkt teilen, auch ohne Login.
       </p>
 

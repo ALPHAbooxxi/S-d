@@ -224,7 +224,7 @@ export default function TauschboersePage() {
                     <div className={styles.matchActions}>
                       <span className={styles.contactBadge}>Erst Match pruefen, dann im Chat konkret anfragen</span>
                       <button className="btn btn-secondary btn-sm" onClick={() => handleOpenConversation(match.userId)}>
-                        Chat oeffnen
+                        Chat öffnen
                       </button>
                       <button className="btn btn-dark btn-sm" id={`trade-${match.userId}`} onClick={() => handlePrepareTrade(match)}>
                         Tausch vorbereiten

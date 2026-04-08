@@ -44,6 +44,6 @@ export async function GET(request) {
   }
 
   redirectUrl.pathname = '/login'
-  redirectUrl.searchParams.set('error', 'Der Bestätigungslink ist ungueltig oder abgelaufen.')
+  redirectUrl.searchParams.set('error', 'Der Bestätigungslink ist ungültig oder abgelaufen.')
   return NextResponse.redirect(redirectUrl)
 }

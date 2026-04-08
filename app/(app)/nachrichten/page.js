@@ -199,7 +199,7 @@ export default function NachrichtenPage() {
                     <span>@{entry.username}</span>
                   </div>
                   <span className="badge badge-dark">
-                    {entry.isKnown ? 'Chat oeffnen' : 'Neu'}
+                    {entry.isKnown ? 'Chat öffnen' : 'Neu'}
                   </span>
                 </button>
               ))
@@ -229,7 +229,7 @@ export default function NachrichtenPage() {
           <span className="empty-state-icon"><ChatIcon size={40} strokeWidth={1.8} /></span>
           <span className="empty-state-title">Noch keine Nachrichten</span>
           <span className="empty-state-text">
-            Starte einen Chat ueber die Suche oder direkt aus einem Match in der Tauschboerse.
+            Starte einen Chat über die Suche oder direkt aus einem Match in der Tauschbörse.
           </span>
         </div>
       ) : (

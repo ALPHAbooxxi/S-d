@@ -19,10 +19,16 @@ export default function ProfilPage() {
     supported: pushSupported,
     permission: pushPermission,
     subscription: pushSubscription,
+    connected: pushConnected,
     busy: pushBusy,
     error: pushError,
+    message: pushMessage,
+    serverSubscriptionCount,
+    serverConfigured,
     requestPermission,
     disablePush,
+    reconnectPush,
+    refreshServerStatus,
     sendTestPush,
   } = usePushNotifications()
   const router = useRouter()
@@ -76,9 +82,7 @@ export default function ProfilPage() {
   }
 
   const handlePushToggle = async () => {
-    if (pushPermission !== 'granted') {
-      await requestPermission()
-    }
+    await requestPermission()
   }
 
   const handlePushDisable = async () => {
@@ -89,12 +93,20 @@ export default function ProfilPage() {
     await sendTestPush()
   }
 
+  const handlePushReconnect = async () => {
+    await reconnectPush()
+  }
+
+  const handlePushStatusRefresh = async () => {
+    await refreshServerStatus()
+  }
+
   const handleEmailSave = async () => {
     setFeedback({ type: '', message: '' })
 
     const normalizedEmail = emailForm.email.trim()
     if (!normalizedEmail) {
-      setFeedback({ type: 'error', message: 'Bitte eine gueltige E-Mail eingeben.' })
+      setFeedback({ type: 'error', message: 'Bitte eine gültige E-Mail eingeben.' })
       return
     }
 
@@ -103,7 +115,7 @@ export default function ProfilPage() {
       await updateEmail({ email: normalizedEmail })
       setFeedback({
         type: 'success',
-        message: 'Bestaetige jetzt die Mail an deine neue Adresse. Die Aenderung wird danach uebernommen.',
+        message: 'Bestätige jetzt die Mail an deine neue Adresse. Die Änderung wird danach übernommen.',
       })
     } catch (error) {
       setFeedback({ type: 'error', message: error.message })
@@ -121,7 +133,7 @@ export default function ProfilPage() {
     }
 
     if (passwordForm.password !== passwordForm.confirmPassword) {
-      setFeedback({ type: 'error', message: 'Die neuen Passwoerter stimmen nicht ueberein.' })
+      setFeedback({ type: 'error', message: 'Die neuen Passwörter stimmen nicht überein.' })
       return
     }
 
@@ -286,7 +298,7 @@ export default function ProfilPage() {
                 />
               </div>
               <div className="input-group">
-                <label htmlFor="confirm-password-profile">Passwort bestaetigen</label>
+                <label htmlFor="confirm-password-profile">Passwort bestätigen</label>
                 <input
                   id="confirm-password-profile"
                   type="password"
@@ -313,7 +325,7 @@ export default function ProfilPage() {
                 </button>
                 <button className={`${styles.actionBtn} ${styles.actionDangerStrong}`} onClick={() => setShowDeleteModal(true)} id="delete-account-button">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /></svg>
-                  Account loeschen
+                  Account löschen
                 </button>
               </div>
             </div>
@@ -346,9 +358,9 @@ export default function ProfilPage() {
                 <span className={styles.pushLabel}>Push-Benachrichtigungen</span>
                 <span className={styles.pushDesc}>
                   {pushPermission === 'granted'
-                    ? pushSubscription
-                      ? 'Aktiv – neue Nachrichten und Tauschanfragen koennen dich jetzt erreichen'
-                      : 'Erlaubt – die Push-Subscription wird gerade vorbereitet'
+                    ? pushConnected
+                      ? 'Verbunden – dieses Gerät kann Push-Nachrichten empfangen'
+                      : 'Browser erlaubt Push, aber dieses Gerät ist noch nicht sauber verbunden'
                     : pushPermission === 'denied'
                     ? 'Blockiert – aktiviere sie in deinen Browser-Einstellungen'
                     : 'Erhalte Benachrichtigungen bei neuen Nachrichten und Tauschanfragen'
@@ -363,12 +375,25 @@ export default function ProfilPage() {
             )}
             {pushPermission === 'granted' && (
               <div className={styles.pushActions}>
-                <span className={styles.pushActive}><CheckIcon size={14} strokeWidth={2.2} />Aktiv</span>
+                {pushConnected ? (
+                  <span className={styles.pushActive}><CheckIcon size={14} strokeWidth={2.2} />Verbunden</span>
+                ) : (
+                  <span className={styles.pushPending}>Noch nicht verbunden</span>
+                )}
+                <button className="btn btn-secondary btn-sm" onClick={handlePushToggle} disabled={pushBusy || pushConnected}>
+                  {pushBusy && !pushConnected ? 'Verbindet...' : 'Verbinden'}
+                </button>
+                <button className="btn btn-secondary btn-sm" onClick={handlePushReconnect} disabled={pushBusy}>
+                  Neu verbinden
+                </button>
+                <button className="btn btn-secondary btn-sm" onClick={handlePushStatusRefresh} disabled={pushBusy}>
+                  Status pruefen
+                </button>
                 <button className="btn btn-secondary btn-sm" onClick={handlePushTest} disabled={pushBusy || !pushSubscription}>
                   Test senden
                 </button>
                 <button className="btn btn-ghost btn-sm" onClick={handlePushDisable} disabled={pushBusy || !pushSubscription}>
-                  Deaktivieren
+                  Dieses Gerät abmelden
                 </button>
               </div>
             )}
@@ -376,6 +401,34 @@ export default function ProfilPage() {
               <span className={styles.pushDenied}>Blockiert</span>
             )}
           </div>
+          <div className={styles.pushStatusGrid}>
+            <div className={styles.pushStatusItem}>
+              <span className={styles.pushStatusLabel}>Browser-Erlaubnis</span>
+              <strong>{pushPermission === 'granted' ? 'Erteilt' : pushPermission === 'denied' ? 'Blockiert' : 'Offen'}</strong>
+            </div>
+            <div className={styles.pushStatusItem}>
+              <span className={styles.pushStatusLabel}>Gerät verbunden</span>
+              <strong>{pushConnected ? 'Ja' : 'Nein'}</strong>
+            </div>
+            <div className={styles.pushStatusItem}>
+              <span className={styles.pushStatusLabel}>Server bereit</span>
+              <strong>{serverConfigured ? 'Ja' : 'Nein'}</strong>
+            </div>
+            <div className={styles.pushStatusItem}>
+              <span className={styles.pushStatusLabel}>Gespeicherte Endpunkte</span>
+              <strong>{serverSubscriptionCount}</strong>
+            </div>
+          </div>
+          {pushPermission === 'granted' && !pushConnected ? (
+            <div className={styles.pushHint}>
+              Wenn du iPhone oder iPad nutzt, muss die App über den Home-Bildschirm geöffnet werden. In einem normalen Safari-Tab kommen Web-Pushes dort nicht an.
+            </div>
+          ) : null}
+          {pushMessage ? (
+            <div className={styles.feedbackSuccess} style={{ marginTop: 16, marginBottom: 0 }}>
+              {pushMessage}
+            </div>
+          ) : null}
           {pushError ? (
             <div className={styles.feedbackError} style={{ marginTop: 16, marginBottom: 0 }}>
               {pushError}
@@ -418,14 +471,14 @@ export default function ProfilPage() {
         <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-handle" />
-            <h3 style={{ marginBottom: 8 }}>Account loeschen?</h3>
+            <h3 style={{ marginBottom: 8 }}>Account löschen?</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: 20, lineHeight: 1.5 }}>
-              Dein Profil, deine Stickerdaten und dein Login werden endgueltig geloescht. Dieser Schritt kann nicht rueckgaengig gemacht werden.
+              Dein Profil, deine Stickerdaten und dein Login werden endgültig gelöscht. Dieser Schritt kann nicht rückgängig gemacht werden.
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="btn btn-secondary btn-full" onClick={() => setShowDeleteModal(false)} disabled={deletingAccount}>Abbrechen</button>
               <button className="btn btn-full" style={{ background: 'var(--error)', color: 'white' }} onClick={handleDeleteAccount} disabled={deletingAccount}>
-                {deletingAccount ? 'Loescht...' : 'Ja, Account loeschen'}
+                {deletingAccount ? 'Löscht...' : 'Ja, Account löschen'}
               </button>
             </div>
           </div>

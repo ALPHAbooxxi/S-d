@@ -21,7 +21,7 @@ export default function ForgotPasswordPage() {
 
     try {
       await requestPasswordReset(email)
-      setSuccess(`Wenn ein Konto fuer ${email} existiert, wurde dir ein Link zum Zuruecksetzen geschickt.`)
+      setSuccess(`Wenn ein Konto für ${email} existiert, wurde dir ein Link zum Zurücksetzen geschickt.`)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         <Link href="/login" className={`btn btn-secondary btn-full ${styles.switchLink}`}>
-          Zurueck zum Login
+          Zurück zum Login
         </Link>
       </div>
     </div>

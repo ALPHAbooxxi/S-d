@@ -127,7 +127,7 @@ export default async function PublicProfilePage({ params }) {
 
       <section className={styles.footerCard}>
         <p>
-          Diese Ansicht ist oeffentlich freigegeben, damit Profile einfach per Link oder QR-Code geteilt werden koennen.
+          Diese Ansicht ist öffentlich freigegeben, damit Profile einfach per Link oder QR-Code geteilt werden können.
         </p>
         <Link href="/" className={styles.footerLink}>
           Zur App

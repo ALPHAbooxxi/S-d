@@ -54,7 +54,7 @@ export default function RegisterPage() {
         password: form.password,
       })
       if (result?.pendingEmailConfirmation) {
-        setSuccess(`Account angelegt. Bitte bestaetige jetzt die E-Mail an ${result.email} und melde dich danach an.`)
+        setSuccess(`Account angelegt. Bitte bestätige jetzt die E-Mail an ${result.email} und melde dich danach an.`)
         return
       }
       router.push('/sammlung')

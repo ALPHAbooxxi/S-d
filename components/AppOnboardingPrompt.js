@@ -65,7 +65,7 @@ export default function AppOnboardingPrompt() {
   const installDescription = installState.standalone
     ? 'Die App ist bereits auf dem Homebildschirm installiert.'
     : installPrompt
-    ? 'Installiere die App direkt im Browser, damit sie sich wie eine echte App oeffnet.'
+    ? 'Installiere die App direkt im Browser, damit sie sich wie eine echte App öffnet.'
     : installState.ios
     ? 'Tippe in Safari auf Teilen und dann auf "Zum Home-Bildschirm", damit du die App schnell wiederfindest.'
     : 'Fuege die App ueber das Browser-Menue deinem Homebildschirm hinzu, damit sie immer direkt griffbereit ist.'
@@ -81,7 +81,7 @@ export default function AppOnboardingPrompt() {
           <span className={styles.eyebrow}>Schnellstart</span>
           <h2 className={styles.title}>Mach die App startklar</h2>
           <p className={styles.subtitle}>
-            Fueg sie auf deinem Homebildschirm hinzu und aktiviere Benachrichtigungen,
+            Füg sie auf deinem Homebildschirm hinzu und aktiviere Benachrichtigungen,
             damit Tauschanfragen und Nachrichten direkt ankommen.
           </p>
         </div>

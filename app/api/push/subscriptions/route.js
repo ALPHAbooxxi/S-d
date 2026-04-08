@@ -24,7 +24,7 @@ export async function POST(request) {
   const subscription = getSubscriptionPayload(body)
 
   if (!subscription.endpoint || !subscription.p256dh_key || !subscription.auth_key) {
-    return NextResponse.json({ error: 'Ungueltige Push-Subscription.' }, { status: 400 })
+    return NextResponse.json({ error: 'Ungültige Push-Subscription.' }, { status: 400 })
   }
 
   const { error } = await supabase
