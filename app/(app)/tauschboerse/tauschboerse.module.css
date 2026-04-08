@@ -8,9 +8,26 @@
   margin: 0 auto;
 }
 
-.header { margin-bottom: 2px; }
+.header {
+  margin-bottom: 2px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .title { font-size: 1.4rem; font-weight: 900; }
 .subtitle { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
+
+.syncInfo {
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, #fffef7 0%, #ffffff 100%);
+  border: 1px solid rgba(234, 200, 1, 0.24);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
 
 .discoveryCard {
   display: flex;
@@ -200,6 +217,13 @@
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 640px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .matchCard:hover {

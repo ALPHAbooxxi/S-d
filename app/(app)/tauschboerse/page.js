@@ -1,21 +1,55 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { useStickers } from '@/lib/stickers-context'
 import { ArrowDownIcon, ArrowUpIcon, CloseIcon, CollectionIcon, SearchIcon } from '@/components/AppIcons'
-import { findMatches, loadUserDirectory } from '@/lib/matching'
+import { createClient } from '@/lib/supabase/client'
+import { findMatches, loadUserDirectory, syncUserDirectoryFromRemote } from '@/lib/matching'
 import styles from './tauschboerse.module.css'
 
 export default function TauschboersePage() {
   const { user } = useAuth()
   const { stickers, duplicateStickers, missingStickers } = useStickers()
   const router = useRouter()
+  const supabase = useMemo(() => createClient(), [])
   const [searchNumber, setSearchNumber] = useState('')
   const [activeTab, setActiveTab] = useState('matches')
-  const directory = useMemo(() => (user ? loadUserDirectory(user.id) : []), [user])
+  const [directory, setDirectory] = useState(() => (user ? loadUserDirectory(user.id) : []))
+  const [directoryLoading, setDirectoryLoading] = useState(false)
+  const [directoryError, setDirectoryError] = useState('')
   const matches = useMemo(() => findMatches(stickers, directory), [directory, stickers])
+
+  useEffect(() => {
+    if (!user) {
+      setDirectory([])
+      return
+    }
+
+    setDirectory(loadUserDirectory(user.id))
+  }, [user])
+
+  const refreshDirectory = useCallback(async () => {
+    if (!user) return
+
+    setDirectoryLoading(true)
+    setDirectoryError('')
+
+    try {
+      const nextDirectory = await syncUserDirectoryFromRemote(supabase, user.id)
+      setDirectory(nextDirectory)
+    } catch (error) {
+      setDirectoryError(error.message || 'Tauschpartner konnten nicht neu geladen werden.')
+    } finally {
+      setDirectoryLoading(false)
+    }
+  }, [supabase, user])
+
+  useEffect(() => {
+    if (!user) return
+    void refreshDirectory()
+  }, [refreshDirectory, user])
 
   const filteredMatches = useMemo(() => {
     if (!searchNumber) return matches
@@ -45,11 +79,20 @@ export default function TauschboersePage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h1 className={styles.title}>Tauschbörse</h1>
-        <p className={styles.subtitle}>
-          Automatische Match-Vorschlaege auf Basis deiner doppelten und fehlenden Sticker.
-        </p>
+        <div>
+          <h1 className={styles.title}>Tauschbörse</h1>
+          <p className={styles.subtitle}>
+            Automatische Match-Vorschlaege auf Basis deiner doppelten und fehlenden Sticker.
+          </p>
+        </div>
+        <button className="btn btn-secondary btn-sm" onClick={refreshDirectory} disabled={directoryLoading}>
+          {directoryLoading ? 'Aktualisiert...' : 'Aktualisieren'}
+        </button>
       </div>
+
+      {directoryError ? (
+        <div className={styles.syncInfo}>{directoryError}</div>
+      ) : null}
 
       {!hasStickers ? (
         <div className="empty-state">
@@ -122,6 +165,8 @@ export default function TauschboersePage() {
                   <span className="empty-state-text">
                     {searchNumber
                       ? `Niemand hat Sticker #${searchNumber} zum Tauschen.`
+                      : directoryLoading
+                      ? 'Tauschpartner werden gerade neu geladen.'
                       : 'Sobald sich mehr Nutzer registrieren, findest du hier passende Tauschpartner!'
                     }
                   </span>
