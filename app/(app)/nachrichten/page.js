@@ -42,6 +42,40 @@ export default function NachrichtenPage() {
   useEffect(() => {
     let active = true
 
+    async function hydrateConversationPartners() {
+      const missingPartnerIds = conversations
+        .map((conversation) => conversation.partnerId)
+        .filter((partnerId) => !directoryUserIds.has(partnerId))
+
+      if (missingPartnerIds.length === 0) return
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, username, display_name, email')
+        .in('id', missingPartnerIds)
+
+      if (!active || error || !data) return
+
+      data.forEach((entry) => {
+        cacheDiscoveredUser({
+          userId: entry.id,
+          username: entry.username,
+          displayName: entry.display_name || entry.username,
+          email: entry.email || null,
+        })
+      })
+    }
+
+    void hydrateConversationPartners()
+
+    return () => {
+      active = false
+    }
+  }, [conversations, directoryUserIds, supabase])
+
+  useEffect(() => {
+    let active = true
+
     async function searchProfiles() {
       const normalized = deferredUsername.trim().replace(/^@+/, '')
 

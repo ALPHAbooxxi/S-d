@@ -57,7 +57,7 @@ CREATE TABLE public.trade_requests (
   requested_stickers INT[], -- Sticker die der Sender haben möchte
   offered_price DECIMAL(6,2), -- Geld-Angebot (bei Kauf)
   message TEXT,
-  status TEXT DEFAULT 'offen' CHECK (status IN ('offen','akzeptiert','abgelehnt','storniert')),
+  status TEXT DEFAULT 'offen' CHECK (status IN ('offen','akzeptiert','abgelehnt','erledigt','storniert')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -143,6 +143,10 @@ CREATE POLICY "Beteiligte können Trade Requests updaten"
   ON public.trade_requests FOR UPDATE
   USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
 
+CREATE POLICY "Beteiligte können Trade Requests löschen"
+  ON public.trade_requests FOR DELETE
+  USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
+
 -- Nachrichten: Sender und Empfänger können lesen
 CREATE POLICY "Nachrichten für Beteiligte sichtbar"
   ON public.messages FOR SELECT
@@ -155,6 +159,10 @@ CREATE POLICY "User kann Nachrichten senden"
 CREATE POLICY "Empfänger kann Nachrichten als gelesen markieren"
   ON public.messages FOR UPDATE
   USING (auth.uid() = receiver_id);
+
+CREATE POLICY "Beteiligte können Nachrichten löschen"
+  ON public.messages FOR DELETE
+  USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
 
 -- ============================================
 -- Trigger: updated_at automatisch setzen

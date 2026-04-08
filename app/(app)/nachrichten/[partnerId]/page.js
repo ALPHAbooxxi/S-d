@@ -44,9 +44,13 @@ function ChatDetailContent() {
     createTrade,
     markAsRead,
     updateTradeStatus,
+    deleteConversation,
   } = useTrades()
   const [draft, setDraft] = useState('')
   const [tradeNote, setTradeNote] = useState('')
+  const [deleteError, setDeleteError] = useState('')
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deletingConversation, setDeletingConversation] = useState(false)
   const [partner, setPartner] = useState(() => {
     if (!user || !partnerId) return null
     return (
@@ -144,6 +148,21 @@ function ChatDetailContent() {
     router.push('/nachrichten')
   }
 
+  const handleDeleteConversation = async () => {
+    setDeleteError('')
+    setDeletingConversation(true)
+
+    try {
+      await deleteConversation(partnerId)
+      router.push('/nachrichten')
+    } catch (error) {
+      setDeleteError(error.message)
+      setShowDeleteModal(false)
+    } finally {
+      setDeletingConversation(false)
+    }
+  }
+
   return (
     <div className={styles.detailPage}>
       <div className={styles.detailTopBar}>
@@ -164,7 +183,14 @@ function ChatDetailContent() {
             </div>
           </div>
         )}
+        <button className="btn btn-secondary btn-sm" onClick={() => setShowDeleteModal(true)}>
+          Chat loeschen
+        </button>
       </div>
+
+      {deleteError ? (
+        <div className={styles.searchInfo}>{deleteError}</div>
+      ) : null}
 
       {!partner ? (
         <div className="empty-state">
@@ -307,6 +333,26 @@ function ChatDetailContent() {
             </form>
           </div>
         </>
+      )}
+
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="modal-content" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-handle" />
+            <h3 style={{ marginBottom: 8 }}>Chat loeschen?</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: 20, lineHeight: 1.5 }}>
+              Dieser Chat und alle zugehoerigen Tauschanfragen werden entfernt.
+            </p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn btn-secondary btn-full" onClick={() => setShowDeleteModal(false)} disabled={deletingConversation}>
+                Abbrechen
+              </button>
+              <button className="btn btn-full" style={{ background: 'var(--error)', color: 'white' }} onClick={handleDeleteConversation} disabled={deletingConversation}>
+                {deletingConversation ? 'Loescht...' : 'Ja, Chat loeschen'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

@@ -143,6 +143,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .detailBack {
@@ -163,6 +164,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 1;
 }
 
 .conversationList {
