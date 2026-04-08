@@ -1,10 +1,10 @@
 'use client'
 
 import { Suspense, useState } from 'react'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
-import { BallIcon } from '@/components/AppIcons'
 import styles from './auth.module.css'
 
 function LoginContent() {
@@ -44,7 +44,17 @@ function LoginContent() {
 
         <div className={styles.container}>
         <div className={styles.header}>
-          <div className={styles.logo}><BallIcon size={40} strokeWidth={1.8} /></div>
+          <div className={styles.logo}>
+            <div className={styles.logoCrop}>
+              <Image
+                src="/login_logo.png"
+                alt="SVD Stickertausch"
+                fill
+                className={styles.logoImage}
+                priority
+              />
+            </div>
+          </div>
           <h1>Willkommen zurück!</h1>
           <p>Melde dich an, um deine Sammlung zu verwalten.</p>
         </div>

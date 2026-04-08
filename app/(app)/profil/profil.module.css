@@ -401,20 +401,45 @@
   color: var(--svd-yellow-600);
 }
 
-/* Powered by */
-.poweredBy {
-  text-align: center;
+/* Made with */
+.madeWith {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  align-self: center;
   padding: 4px 0 8px;
-  font-size: 0.68rem;
   color: var(--text-muted);
-  letter-spacing: 0.04em;
-}
-
-.poweredBy a {
-  color: var(--svd-yellow-600);
+  font-size: 0.68rem;
   font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: opacity var(--transition-fast);
 }
 
-.poweredBy a:hover {
+.madeWith:hover {
+  opacity: 0.82;
+}
+
+.madeWithHeart {
+  width: 12px;
+  height: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 1px;
   color: var(--svd-yellow-500);
+}
+
+.madeWithHeart svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.madeWithLogo {
+  width: min(106px, 34vw);
+  height: auto;
+  object-fit: contain;
 }

@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
-import { BallIcon } from '@/components/AppIcons'
 import styles from '../login/auth.module.css'
 
 export default function RegisterPage() {
@@ -77,7 +77,17 @@ export default function RegisterPage() {
 
         <div className={styles.container}>
         <div className={styles.header}>
-          <div className={styles.logo}><BallIcon size={40} strokeWidth={1.8} /></div>
+          <div className={styles.logo}>
+            <div className={styles.logoCrop}>
+              <Image
+                src="/login_logo.png"
+                alt="SVD Stickertausch"
+                fill
+                className={styles.logoImage}
+                priority
+              />
+            </div>
+          </div>
           <h1>Account erstellen</h1>
           <p>Registriere dich kostenlos und tausche danach nur direkt in der App.</p>
         </div>

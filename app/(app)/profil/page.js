@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
@@ -444,11 +445,28 @@ export default function ProfilPage() {
         <Link href="/datenschutz">Datenschutz</Link>
       </div>
 
-      {/* Powered By */}
-      <div className={styles.poweredBy}>
-        powered by{' '}
-        <a href="https://media-wilkens.de" target="_blank" rel="noopener noreferrer">Media Wilkens</a>
-      </div>
+      <a
+        href="https://media-wilkens.de"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.madeWith}
+      >
+        <span>mit</span>
+        <span className={styles.madeWithHeart} aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 21.35 10.55 20C5.4 15.24 2 12.09 2 8.25 2 5.11 4.42 2.75 7.5 2.75c1.74 0 3.41.81 4.5 2.09 1.09-1.28 2.76-2.09 4.5-2.09 3.08 0 5.5 2.36 5.5 5.5 0 3.84-3.4 6.99-8.55 11.76L12 21.35Z" />
+          </svg>
+        </span>
+        <span>von</span>
+        <Image
+          src="/logo_media_wilkens.png"
+          alt="Media Wilkens"
+          width={156}
+          height={28}
+          className={styles.madeWithLogo}
+        />
+        <span>erstellt</span>
+      </a>
 
       {/* Confirm Clear Modal */}
       {showConfirmClear && (

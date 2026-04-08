@@ -44,11 +44,12 @@ export default function LandingPage() {
         <div className={styles.heroBg} />
         <div className={styles.heroContent}>
           <Image
-            src="/svdalum-6478683bad16e.png"
-            alt="SV Dalum 1926 e.V."
+            src="/logo_login_neg.png"
+            alt="SV Dalum und Media Wilkens"
             className={styles.heroLogo}
-            width={100}
-            height={100}
+            width={340}
+            height={170}
+            priority
           />
 
           <div className={styles.badge100}>
@@ -139,11 +140,30 @@ export default function LandingPage() {
             <span className={styles.footerDot}>·</span>
             <Link href="/datenschutz">Datenschutz</Link>
           </div>
-          <div className={styles.footerPowered}>
-            powered by{' '}
-            <a href="https://media-wilkens.de" target="_blank" rel="noopener noreferrer">
-              Media Wilkens
-            </a>
+          <a
+            href="https://media-wilkens.de"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.footerMadeWith}
+          >
+            <span>mit</span>
+            <span className={styles.footerHeart} aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 21.35 10.55 20C5.4 15.24 2 12.09 2 8.25 2 5.11 4.42 2.75 7.5 2.75c1.74 0 3.41.81 4.5 2.09 1.09-1.28 2.76-2.09 4.5-2.09 3.08 0 5.5 2.36 5.5 5.5 0 3.84-3.4 6.99-8.55 11.76L12 21.35Z" />
+              </svg>
+            </span>
+            <span>von</span>
+            <Image
+              src="/logo_neg.png"
+              alt="Media Wilkens"
+              width={188}
+              height={44}
+              className={styles.footerPartnerLogo}
+            />
+            <span>erstellt</span>
+          </a>
+          <div className={styles.footerCopyright}>
+            &copy; 2026 Media Wilkens
           </div>
         </div>
       </footer>
