@@ -111,6 +111,46 @@
   font-weight: 800;
 }
 
+.accordionToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  text-align: left;
+  color: var(--text-primary);
+}
+
+.accordionText {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.accordionIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--gray-100);
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.accordionIconOpen {
+  transform: rotate(180deg);
+  background: var(--svd-yellow-100);
+  color: var(--svd-dark-700);
+}
+
+.accordionContent {
+  margin-top: 18px;
+}
+
 /* Edit Form */
 .editForm {
   display: flex;

@@ -34,6 +34,7 @@ export default function ProfilPage() {
   const [savingEmail, setSavingEmail] = useState(false)
   const [savingPassword, setSavingPassword] = useState(false)
   const [deletingAccount, setDeletingAccount] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   useEffect(() => {
     setForm({ displayName: user?.displayName || '' })
@@ -201,63 +202,101 @@ export default function ProfilPage() {
               <span className={styles.infoLabel}>Benutzername</span>
               <span className={styles.infoValue}>@{user?.username}</span>
             </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Kommunikation</span>
-              <span className={styles.infoValue}>Nur ueber Nachrichten und Tauschanfragen in der App</span>
-            </div>
           </div>
         )}
       </div>
 
       <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Zugangsdaten</h2>
-        </div>
-
-        <div className={styles.editForm}>
-          <div className="input-group">
-            <label htmlFor="edit-email">E-Mail aendern</label>
-            <input
-              id="edit-email"
-              type="email"
-              className="input"
-              value={emailForm.email}
-              onChange={(event) => setEmailForm({ email: event.target.value })}
-              autoComplete="email"
-            />
+        <button
+          className={styles.accordionToggle}
+          type="button"
+          onClick={() => setSettingsOpen((open) => !open)}
+          aria-expanded={settingsOpen}
+        >
+          <div>
+            <h2 className={styles.sectionTitle}>Einstellungen</h2>
+            <p className={styles.accordionText}>
+              E-Mail, Passwort und Account-Verwaltung
+            </p>
           </div>
-          <button className="btn btn-secondary" onClick={handleEmailSave} disabled={savingEmail}>
-            {savingEmail ? 'Wird gesendet...' : 'E-Mail aktualisieren'}
-          </button>
+          <span className={`${styles.accordionIcon} ${settingsOpen ? styles.accordionIconOpen : ''}`}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </span>
+        </button>
 
-          <div className={styles.separator} />
+        {settingsOpen && (
+          <div className={styles.accordionContent}>
+            {feedback.message && (
+              <div className={feedback.type === 'error' ? styles.feedbackError : styles.feedbackSuccess}>
+                {feedback.message}
+              </div>
+            )}
 
-          <div className="input-group">
-            <label htmlFor="new-password-profile">Neues Passwort</label>
-            <input
-              id="new-password-profile"
-              type="password"
-              className="input"
-              value={passwordForm.password}
-              onChange={(event) => setPasswordForm((prev) => ({ ...prev, password: event.target.value }))}
-              autoComplete="new-password"
-            />
+            <div className={styles.editForm}>
+              <div className="input-group">
+                <label htmlFor="edit-email">E-Mail aendern</label>
+                <input
+                  id="edit-email"
+                  type="email"
+                  className="input"
+                  value={emailForm.email}
+                  onChange={(event) => setEmailForm({ email: event.target.value })}
+                  autoComplete="email"
+                />
+              </div>
+              <button className="btn btn-secondary" onClick={handleEmailSave} disabled={savingEmail}>
+                {savingEmail ? 'Wird gesendet...' : 'E-Mail aktualisieren'}
+              </button>
+
+              <div className={styles.separator} />
+
+              <div className="input-group">
+                <label htmlFor="new-password-profile">Neues Passwort</label>
+                <input
+                  id="new-password-profile"
+                  type="password"
+                  className="input"
+                  value={passwordForm.password}
+                  onChange={(event) => setPasswordForm((prev) => ({ ...prev, password: event.target.value }))}
+                  autoComplete="new-password"
+                />
+              </div>
+              <div className="input-group">
+                <label htmlFor="confirm-password-profile">Passwort bestaetigen</label>
+                <input
+                  id="confirm-password-profile"
+                  type="password"
+                  className="input"
+                  value={passwordForm.confirmPassword}
+                  onChange={(event) => setPasswordForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
+                  autoComplete="new-password"
+                />
+              </div>
+              <button className="btn btn-secondary" onClick={handlePasswordSave} disabled={savingPassword}>
+                {savingPassword ? 'Speichert...' : 'Passwort aktualisieren'}
+              </button>
+
+              <div className={styles.separator} />
+
+              <div className={styles.actionList}>
+                <button className={`${styles.actionBtn} ${styles.actionWarn}`} onClick={() => setShowConfirmClear(true)}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                  Alle Sticker zurücksetzen
+                </button>
+                <button className={`${styles.actionBtn} ${styles.actionDanger}`} onClick={handleLogout} id="logout-button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                  Abmelden
+                </button>
+                <button className={`${styles.actionBtn} ${styles.actionDangerStrong}`} onClick={() => setShowDeleteModal(true)} id="delete-account-button">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /></svg>
+                  Account loeschen
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="input-group">
-            <label htmlFor="confirm-password-profile">Passwort bestaetigen</label>
-            <input
-              id="confirm-password-profile"
-              type="password"
-              className="input"
-              value={passwordForm.confirmPassword}
-              onChange={(event) => setPasswordForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
-              autoComplete="new-password"
-            />
-          </div>
-          <button className="btn btn-secondary" onClick={handlePasswordSave} disabled={savingPassword}>
-            {savingPassword ? 'Speichert...' : 'Passwort aktualisieren'}
-          </button>
-        </div>
+        )}
       </div>
 
       <div className={styles.section}>
@@ -307,25 +346,6 @@ export default function ProfilPage() {
           </div>
         </div>
       )}
-
-      {/* Actions */}
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Aktionen</h2>
-        <div className={styles.actionList}>
-          <button className={`${styles.actionBtn} ${styles.actionWarn}`} onClick={() => setShowConfirmClear(true)}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
-            Alle Sticker zurücksetzen
-          </button>
-          <button className={`${styles.actionBtn} ${styles.actionDanger}`} onClick={handleLogout} id="logout-button">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-            Abmelden
-          </button>
-          <button className={`${styles.actionBtn} ${styles.actionDangerStrong}`} onClick={() => setShowDeleteModal(true)} id="delete-account-button">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /></svg>
-            Account loeschen
-          </button>
-        </div>
-      </div>
 
       {/* Legal Links */}
       <div className={styles.legalLinks}>
