@@ -6,7 +6,7 @@ import { ALBUM_CONFIG, getCategoryForSticker, useStickers } from '@/lib/stickers
 import styles from './StickerGrid.module.css'
 
 export default function StickerGrid() {
-  const { stickers, incrementSticker, decrementSticker, bulkAdd, setQuantity } = useStickers()
+  const { stickers, incrementSticker, decrementSticker, bulkAdd, bulkRemove, setQuantity } = useStickers()
   const [activeCategory, setActiveCategory] = useState('all')
   const [quickInput, setQuickInput] = useState('')
   const [showQuickInput, setShowQuickInput] = useState(false)
@@ -57,7 +57,7 @@ export default function StickerGrid() {
     setTimeout(() => setToast(null), 2000)
   }, [])
 
-  const handleQuickAdd = useCallback(() => {
+  const handleQuickInputSubmit = useCallback(() => {
     if (!quickInput.trim()) return
     const numbers = []
     const parts = quickInput.split(',').map(s => s.trim()).filter(Boolean)
@@ -75,11 +75,19 @@ export default function StickerGrid() {
       }
     })
     if (numbers.length > 0) {
-      bulkAdd(numbers)
+      if (mode === 'remove') {
+        bulkRemove(numbers)
+      } else {
+        bulkAdd(numbers)
+      }
       setQuickInput('')
-      showToast(`${numbers.length} Sticker hinzugefügt!`)
+      showToast(
+        mode === 'remove'
+          ? `${numbers.length} Sticker entfernt!`
+          : `${numbers.length} Sticker hinzugefügt!`
+      )
     }
-  }, [bulkAdd, quickInput, showToast])
+  }, [bulkAdd, bulkRemove, mode, quickInput, showToast])
 
   // Tap handler — depends on mode
   const handleTap = (num) => {
@@ -215,11 +223,11 @@ export default function StickerGrid() {
               value={quickInput}
               onChange={(e) => setQuickInput(e.target.value)}
               placeholder="z.B. 1, 5, 12, 45-60"
-              onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
+              onKeyDown={(e) => e.key === 'Enter' && handleQuickInputSubmit()}
               id="quick-input-field"
             />
-            <button className="btn btn-primary" onClick={handleQuickAdd} id="quick-input-submit">
-              Hinzufügen
+            <button className="btn btn-primary" onClick={handleQuickInputSubmit} id="quick-input-submit">
+              {mode === 'remove' ? 'Entfernen' : 'Hinzufügen'}
             </button>
           </div>
         </div>
