@@ -85,3 +85,14 @@
 .footer {
   margin-top: 18px;
 }
+
+.errorBox {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--error-light);
+  color: #b91c1c;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.45;
+}

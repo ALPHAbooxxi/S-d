@@ -16,7 +16,14 @@ function isStandaloneMode() {
 
 export default function AppOnboardingPrompt() {
   const { user } = useAuth()
-  const { supported, permission, requestPermission } = usePushNotifications()
+  const {
+    supported,
+    permission,
+    connected,
+    busy,
+    error,
+    requestPermission,
+  } = usePushNotifications()
   const [open, setOpen] = useState(() => (
     typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY)
   ))
@@ -60,6 +67,10 @@ export default function AppOnboardingPrompt() {
     }
 
     setInstallPrompt(null)
+  }
+
+  const handleEnablePush = async () => {
+    await requestPermission()
   }
 
   const installDescription = installState.standalone
@@ -108,7 +119,11 @@ export default function AppOnboardingPrompt() {
               <span className={styles.itemTitle}>Benachrichtigungen</span>
               <span className={styles.itemText}>
                 {permission === 'granted'
-                  ? 'Push-Benachrichtigungen sind bereits aktiv.'
+                  ? connected
+                    ? 'Push-Benachrichtigungen sind auf diesem Gerät aktiv.'
+                    : busy
+                    ? 'Push wird gerade mit diesem Gerät verbunden.'
+                    : 'Push ist erlaubt, aber dieses Gerät wird noch verbunden.'
                   : permission === 'denied'
                   ? 'Benachrichtigungen sind blockiert. Du kannst sie spaeter in den Browser-Einstellungen wieder freigeben.'
                   : supported
@@ -116,17 +131,23 @@ export default function AppOnboardingPrompt() {
                   : 'Dein Browser unterstuetzt hier leider keine Push-Benachrichtigungen.'}
               </span>
             </div>
-            {permission === 'granted' ? (
+            {connected ? (
               <span className={styles.done}>Aktiv</span>
-            ) : permission === 'default' && supported ? (
-              <button className="btn btn-primary btn-sm" onClick={requestPermission}>
-                Aktivieren
-              </button>
             ) : (
-              <span className={styles.hint}>{supported ? 'Spaeter' : 'Nicht verfuegbar'}</span>
+              permission !== 'denied' && supported ? (
+                <button className="btn btn-primary btn-sm" onClick={handleEnablePush} disabled={busy}>
+                  {busy ? 'Verbindet...' : 'Aktivieren'}
+                </button>
+              ) : (
+                <span className={styles.hint}>{supported ? 'Spaeter' : 'Nicht verfuegbar'}</span>
+              )
             )}
           </div>
         </div>
+
+        {error ? (
+          <div className={styles.errorBox}>{error}</div>
+        ) : null}
 
         <div className={styles.footer}>
           <button className="btn btn-ghost btn-full" onClick={closePrompt}>
