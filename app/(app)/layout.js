@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import BottomNav from '@/components/BottomNav'
+import AppOnboardingPrompt from '@/components/AppOnboardingPrompt'
 import Providers from '@/components/Providers'
 import styles from './app-layout.module.css'
 
@@ -33,6 +34,7 @@ function AppShell({ children }) {
         {children}
       </main>
       <BottomNav />
+      <AppOnboardingPrompt />
     </div>
   )
 }

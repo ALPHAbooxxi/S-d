@@ -10,13 +10,19 @@
 
 .title { font-size: 1.4rem; font-weight: 900; }
 
-.list {
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.conversationList {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.chatItem {
+.conversationCard {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -26,16 +32,22 @@
   border: 1px solid var(--border-light);
   cursor: pointer;
   transition: all var(--transition-fast);
-  text-decoration: none;
   color: inherit;
+  text-align: left;
 }
 
-.chatItem:hover {
+.conversationCard:hover {
   box-shadow: var(--shadow-md);
   border-color: var(--svd-yellow-300);
 }
 
-.chatAvatar {
+.conversationActive {
+  border-color: var(--svd-yellow-400);
+  background: linear-gradient(180deg, #fffef7 0%, #ffffff 100%);
+}
+
+.convAvatar,
+.threadAvatar {
   width: 42px;
   height: 42px;
   border-radius: 50%;
@@ -49,19 +61,26 @@
   flex-shrink: 0;
 }
 
-.chatInfo {
+.convContent {
   flex: 1;
   min-width: 0;
 }
 
-.chatName {
+.convTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.convName {
   display: block;
   font-weight: 700;
   font-size: 0.88rem;
   margin-bottom: 2px;
 }
 
-.chatPreview {
+.convPreview {
   display: block;
   font-size: 0.78rem;
   color: var(--text-muted);
@@ -70,30 +89,166 @@
   white-space: nowrap;
 }
 
-.chatMeta {
+.convMeta {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: flex-end;
   gap: 4px;
   flex-shrink: 0;
+  justify-content: flex-end;
 }
 
-.chatTime {
+.convTime,
+.threadHandle {
   font-size: 0.65rem;
   color: var(--text-muted);
   font-weight: 500;
 }
 
-.chatBadge {
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  font-size: 0.6rem;
-  font-weight: 800;
+.threadCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+}
+
+.threadHeader {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: var(--svd-yellow-500);
-  color: var(--svd-dark-900);
-  border-radius: 9999px;
+  gap: 12px;
+}
+
+.threadName {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.tradeList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tradeCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, #fffef7 0%, #ffffff 100%);
+  border: 1px solid rgba(234, 200, 1, 0.26);
+}
+
+.tradeTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tradeGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.tradeLabel {
+  display: inline-block;
+  margin-bottom: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.tradeGrid p {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.tradeActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.messageList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.threadEmpty {
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: var(--gray-50);
+  border: 1px dashed var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.messageBubble {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 88%;
+  padding: 12px 14px;
+  border-radius: 18px;
+}
+
+.messageBubble p {
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.messageBubble span {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.messageOwn {
+  margin-left: auto;
+  background: var(--svd-yellow-100);
+  border: 1px solid var(--svd-yellow-200);
+}
+
+.messageOther {
+  margin-right: auto;
+  background: var(--gray-50);
+  border: 1px solid var(--border-light);
+}
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.composerInput {
+  width: 100%;
+  min-height: 90px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  resize: vertical;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.composerInput:focus {
+  outline: none;
+  border-color: var(--svd-yellow-500);
+  box-shadow: 0 0 0 3px rgba(234, 200, 1, 0.18);
+}
+
+@media (min-width: 768px) {
+  .tradeGrid {
+    grid-template-columns: 1fr 1fr;
+  }
 }

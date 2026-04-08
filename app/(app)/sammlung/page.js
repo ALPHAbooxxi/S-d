@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/lib/auth-context'
 import { useStickers, ALBUM_CONFIG } from '@/lib/stickers-context'
+import { SparkIcon } from '@/components/AppIcons'
 import ProgressRing from '@/components/ProgressRing'
 import StickerGrid from '@/components/StickerGrid'
 import styles from './sammlung.module.css'
@@ -15,7 +16,7 @@ export default function SammlungPage() {
       <div className={styles.header}>
         <div className={styles.headerTop}>
           <h1 className={styles.title}>Meine Sammlung</h1>
-          <span className={styles.greeting}>Hallo, {user?.displayName || user?.username}! 👋</span>
+          <span className={styles.greeting}>Hallo, {user?.displayName || user?.username}!</span>
         </div>
       </div>
 
@@ -45,10 +46,10 @@ export default function SammlungPage() {
 
       {duplicateStickers.length > 0 && (
         <div className={styles.duplicatesHint}>
-          <div className={styles.duplicatesIcon}>💡</div>
+          <div className={styles.duplicatesIcon}><SparkIcon size={20} strokeWidth={1.8} /></div>
           <div>
             <strong>Tipp:</strong> Du hast {totalDuplicates} doppelte Sticker. 
-            Geh zur Tauschbörse um Tauschpartner zu finden oder Sticker zu verkaufen!
+            Geh zur Tauschboerse, um passende Nutzer zu finden und direkt in der App eine Tauschanfrage zu senden.
           </div>
         </div>
       )}

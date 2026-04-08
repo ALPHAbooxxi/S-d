@@ -1,6 +1,6 @@
 .appContainer {
   min-height: 100dvh;
-  padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom));
+  padding-bottom: calc(var(--bottom-nav-height) + var(--safe-bottom) + 18px);
   background: var(--bg-primary);
 }
 

@@ -6,19 +6,19 @@ import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { useStickers, ALBUM_CONFIG } from '@/lib/stickers-context'
 import { usePushNotifications } from '@/lib/use-push-notifications'
+import { BellIcon, CheckIcon } from '@/components/AppIcons'
 import ProgressRing from '@/components/ProgressRing'
+import ProfileShareCard from '@/components/ProfileShareCard'
 import styles from './profil.module.css'
 
 export default function ProfilPage() {
   const { user, logout, updateProfile } = useAuth()
-  const { ownedStickers, duplicateStickers, missingStickers, progress, totalDuplicates, clearAll } = useStickers()
+  const { ownedStickers, duplicateStickers, progress, totalDuplicates, clearAll } = useStickers()
   const { supported: pushSupported, permission: pushPermission, requestPermission } = usePushNotifications()
   const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({
     displayName: user?.displayName || '',
-    contactMethod: user?.contactMethod || 'platform',
-    contactInfo: user?.contactInfo || '',
   })
   const [showConfirmClear, setShowConfirmClear] = useState(false)
 
@@ -93,21 +93,6 @@ export default function ProfilPage() {
               <label htmlFor="edit-name">Anzeigename</label>
               <input id="edit-name" type="text" className="input" value={form.displayName} onChange={(e) => setForm(prev => ({ ...prev, displayName: e.target.value }))} />
             </div>
-            <div className="input-group">
-              <label htmlFor="edit-contact-method">Kontaktmethode</label>
-              <select id="edit-contact-method" className="input" value={form.contactMethod} onChange={(e) => setForm(prev => ({ ...prev, contactMethod: e.target.value }))}>
-                <option value="platform">Über die Plattform</option>
-                <option value="whatsapp">WhatsApp</option>
-                <option value="telefon">Telefon</option>
-                <option value="persoenlich">Persönlich</option>
-              </select>
-            </div>
-            {form.contactMethod !== 'platform' && form.contactMethod !== 'persoenlich' && (
-              <div className="input-group">
-                <label htmlFor="edit-contact-info">{form.contactMethod === 'whatsapp' ? 'WhatsApp-Nummer' : 'Telefonnummer'}</label>
-                <input id="edit-contact-info" type="tel" className="input" value={form.contactInfo} onChange={(e) => setForm(prev => ({ ...prev, contactInfo: e.target.value }))} />
-              </div>
-            )}
           </div>
         ) : (
           <div className={styles.profileInfo}>
@@ -116,16 +101,27 @@ export default function ProfilPage() {
               <span className={styles.infoValue}>{user?.email}</span>
             </div>
             <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Kontakt</span>
-              <span className={styles.infoValue}>
-                {user?.contactMethod === 'platform' ? 'Über die Plattform' :
-                 user?.contactMethod === 'whatsapp' ? `WhatsApp: ${user?.contactInfo}` :
-                 user?.contactMethod === 'telefon' ? `Telefon: ${user?.contactInfo}` :
-                 'Persönlich'}
-              </span>
+              <span className={styles.infoLabel}>Benutzername</span>
+              <span className={styles.infoValue}>@{user?.username}</span>
+            </div>
+            <div className={styles.infoRow}>
+              <span className={styles.infoLabel}>Kommunikation</span>
+              <span className={styles.infoValue}>Nur ueber Nachrichten und Tauschanfragen in der App</span>
             </div>
           </div>
         )}
+      </div>
+
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Teilen</h2>
+        </div>
+        <ProfileShareCard
+          user={user}
+          ownedCount={ownedStickers.length}
+          totalDuplicates={totalDuplicates}
+          duplicateStickers={duplicateStickers}
+        />
       </div>
 
       {/* Push Notifications */}
@@ -136,7 +132,7 @@ export default function ProfilPage() {
           </div>
           <div className={styles.pushRow}>
             <div className={styles.pushInfo}>
-              <span className={styles.pushIcon}>🔔</span>
+              <span className={styles.pushIcon}><BellIcon size={18} strokeWidth={1.8} /></span>
               <div>
                 <span className={styles.pushLabel}>Push-Benachrichtigungen</span>
                 <span className={styles.pushDesc}>
@@ -144,7 +140,7 @@ export default function ProfilPage() {
                     ? 'Aktiv – du wirst benachrichtigt bei neuen Nachrichten'
                     : pushPermission === 'denied'
                     ? 'Blockiert – aktiviere sie in deinen Browser-Einstellungen'
-                    : 'Erhalte Benachrichtigungen bei neuen Nachrichten und Tausch-Anfragen'
+                    : 'Erhalte Benachrichtigungen bei neuen Nachrichten und Tauschanfragen'
                   }
                 </span>
               </div>
@@ -155,7 +151,7 @@ export default function ProfilPage() {
               </button>
             )}
             {pushPermission === 'granted' && (
-              <span className={styles.pushActive}>✓ Aktiv</span>
+              <span className={styles.pushActive}><CheckIcon size={14} strokeWidth={2.2} />Aktiv</span>
             )}
             {pushPermission === 'denied' && (
               <span className={styles.pushDenied}>Blockiert</span>

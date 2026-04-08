@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SVD Stickertausch</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f8f8f8;font-family:Montserrat,Arial,sans-serif;color:#111113;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8f8f8;padding:24px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#ffffff;border-radius:24px;overflow:hidden;border:1px solid #ebebed;">
+            <tr>
+              <td style="background:linear-gradient(160deg,#0a0a0a 0%,#1c1c1e 100%);padding:40px 32px;text-align:center;">
+                <div style="display:inline-block;padding:6px 18px;border-radius:999px;background:rgba(234,200,1,0.12);border:1px solid rgba(234,200,1,0.28);font-size:12px;font-weight:800;letter-spacing:0.14em;color:#eac801;text-transform:uppercase;">
+                  SVD Stickertausch
+                </div>
+                <h1 style="margin:18px 0 10px;font-size:34px;line-height:1.05;color:#eac801;font-weight:900;">Du wurdest eingeladen</h1>
+                <p style="margin:0;color:rgba(255,255,255,0.72);font-size:15px;line-height:1.6;">
+                  Erstelle dein Konto und steig direkt in die Tauschboerse ein.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:36px 32px 18px;">
+                <p style="margin:0 0 18px;font-size:16px;line-height:1.7;color:#4a4a50;">
+                  fuer {{ .Email }} liegt eine Einladung zur SVD-Stickertausch-App bereit. Nimm sie an und vervollstaendige dein Album gemeinsam mit anderen Sammlern.
+                </p>
+                <table role="presentation" cellspacing="0" cellpadding="0" style="margin:30px 0 24px;">
+                  <tr>
+                    <td align="center" bgcolor="#eac801" style="border-radius:14px;">
+                      <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:16px 28px;font-size:15px;font-weight:800;color:#0a0a0a;text-decoration:none;">
+                        Einladung annehmen
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+                <div style="padding:18px;border-radius:16px;background:#fefce8;border:1px solid #faf0a8;">
+                  <p style="margin:0 0 8px;font-size:13px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:#6b6b73;">
+                    Direkter Link
+                  </p>
+                  <p style="margin:0;font-size:14px;line-height:1.7;color:#4a4a50;word-break:break-word;">
+                    {{ .ConfirmationURL }}
+                  </p>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 32px 32px;">
+                <p style="margin:0;font-size:13px;line-height:1.7;color:#8f8f99;">
+                  Wenn diese Einladung nicht fuer dich bestimmt ist, kannst du die E-Mail ignorieren.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:18px 32px;background:#111113;text-align:center;">
+                <p style="margin:0;font-size:12px;line-height:1.6;color:rgba(255,255,255,0.58);">
+                  SVD Stickertausch · SV Dalum 1926 e.V. · powered by Media Wilkens
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

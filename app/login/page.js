@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
+import { BallIcon } from '@/components/AppIcons'
 import styles from './auth.module.css'
 
 export default function LoginPage() {
@@ -39,9 +40,9 @@ export default function LoginPage() {
         </Link>
       </div>
 
-      <div className={styles.container}>
+        <div className={styles.container}>
         <div className={styles.header}>
-          <div className={styles.logo}>⚽</div>
+          <div className={styles.logo}><BallIcon size={40} strokeWidth={1.8} /></div>
           <h1>Willkommen zurück!</h1>
           <p>Melde dich an, um deine Sammlung zu verwalten.</p>
         </div>
@@ -75,6 +76,12 @@ export default function LoginPage() {
               required
               autoComplete="current-password"
             />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: -4 }}>
+            <Link href="/passwort-vergessen" style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--svd-yellow-600)' }}>
+              Passwort vergessen?
+            </Link>
           </div>
 
           <button

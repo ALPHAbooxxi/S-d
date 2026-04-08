@@ -1,16 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import Image from 'next/image'
+import { ChatIcon, CollectionIcon, SearchIcon, TrophyIcon } from '@/components/AppIcons'
 import styles from './LandingPage.module.css'
 
 export default function LandingPage() {
-  const [stats, setStats] = useState({ users: 0 })
-
-  useEffect(() => {
-    const allUsers = JSON.parse(localStorage.getItem('svd_all_users') || '[]')
-    setStats({ users: allUsers.length })
-  }, [])
+  const stats = {
+    users:
+      typeof window === 'undefined'
+        ? 0
+        : JSON.parse(localStorage.getItem('svd_all_users') || '[]').length,
+  }
 
   return (
     <div className={styles.page}>
@@ -18,7 +19,7 @@ export default function LandingPage() {
       <section className={styles.hero}>
         <div className={styles.heroBg} />
         <div className={styles.heroContent}>
-          <img
+          <Image
             src="/svdalum-6478683bad16e.png"
             alt="SV Dalum 1926 e.V."
             className={styles.heroLogo}
@@ -40,7 +41,7 @@ export default function LandingPage() {
           </p>
           
           <p className={styles.heroDesc}>
-            708 Sticker · Tauschen oder kaufen · Kostenlos
+            708 Sticker · Tauschen · Nachrichten direkt in der App
           </p>
 
           <div className={styles.heroCta}>
@@ -77,13 +78,13 @@ export default function LandingPage() {
         <h2>So funktioniert&apos;s</h2>
         <div className={styles.steps}>
           {[
-            { icon: '📋', title: 'Sammlung pflegen', desc: 'Trage ein welche Sticker du hast und welche doppelt sind. Schnelleingabe macht\'s einfach!' },
-            { icon: '🔄', title: 'Tauschpartner finden', desc: 'Unser Algorithmus findet die besten Matches – sofort sehen wer was hat!' },
-            { icon: '💰', title: 'Tauschen oder kaufen', desc: 'Sticker tauschen oder ein Geld-Angebot machen – flexibel wie du willst.' },
-            { icon: '🏆', title: 'Album vollmachen', desc: 'Behalte deinen Fortschritt im Blick und werde ein 100% Sammler!' },
+            { icon: CollectionIcon, title: 'Sammlung pflegen', desc: 'Trage ein welche Sticker du hast und welche doppelt sind. Schnelleingabe macht\'s einfach!' },
+            { icon: SearchIcon, title: 'Nutzer finden', desc: 'Suche direkt nach Benutzernamen oder lass dir passende Tauschpartner anzeigen.' },
+            { icon: ChatIcon, title: 'In der App schreiben', desc: 'Starte Nachrichten und Tauschanfragen direkt in der App, ganz ohne WhatsApp oder E-Mail.' },
+            { icon: TrophyIcon, title: 'Album vollmachen', desc: 'Behalte deinen Fortschritt im Blick und werde ein 100% Sammler!' },
           ].map((step, i) => (
             <div key={i} className={`${styles.stepCard} animate-fade-in-up delay-${i + 1}`}>
-              <div className={styles.stepIcon}>{step.icon}</div>
+              <div className={styles.stepIcon}><step.icon size={26} strokeWidth={1.8} /></div>
               <h3>{step.title}</h3>
               <p>{step.desc}</p>
             </div>

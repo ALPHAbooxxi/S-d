@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
+import { BallIcon } from '@/components/AppIcons'
 import styles from '../login/auth.module.css'
 
 export default function RegisterPage() {
@@ -13,10 +14,9 @@ export default function RegisterPage() {
     email: '',
     password: '',
     passwordConfirm: '',
-    contactMethod: 'platform',
-    contactInfo: '',
   })
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
   const { register } = useAuth()
   const router = useRouter()
@@ -28,6 +28,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setSuccess('')
 
     if (form.password.length < 6) {
       setError('Passwort muss mindestens 6 Zeichen lang sein.')
@@ -46,14 +47,16 @@ export default function RegisterPage() {
 
     setLoading(true)
     try {
-      await register({
+      const result = await register({
         username: form.username,
         displayName: form.displayName || form.username,
         email: form.email,
         password: form.password,
-        contactMethod: form.contactMethod,
-        contactInfo: form.contactInfo,
       })
+      if (result?.pendingEmailConfirmation) {
+        setSuccess(`Account angelegt. Bitte bestaetige jetzt die E-Mail an ${result.email} und melde dich danach an.`)
+        return
+      }
       router.push('/sammlung')
     } catch (err) {
       setError(err.message)
@@ -72,15 +75,16 @@ export default function RegisterPage() {
         </Link>
       </div>
 
-      <div className={styles.container}>
+        <div className={styles.container}>
         <div className={styles.header}>
-          <div className={styles.logo}>⚽</div>
+          <div className={styles.logo}><BallIcon size={40} strokeWidth={1.8} /></div>
           <h1>Account erstellen</h1>
-          <p>Registriere dich kostenlos und starte mit dem Tauschen!</p>
+          <p>Registriere dich kostenlos und tausche danach nur direkt in der App.</p>
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit}>
           {error && <div className={styles.errorBox}>{error}</div>}
+          {success && <div style={{ padding: '12px 16px', background: 'var(--success-light)', borderRadius: 'var(--radius-md)', color: '#166534', fontSize: '0.82rem', fontWeight: 600 }}>{success}</div>}
 
           <div className="input-group">
             <label htmlFor="username">Benutzername *</label>
@@ -152,37 +156,6 @@ export default function RegisterPage() {
           </div>
 
           <div className={styles.separator} />
-
-          <div className="input-group">
-            <label htmlFor="contactMethod">Wie möchtest du kontaktiert werden?</label>
-            <select
-              id="contactMethod"
-              className="input"
-              value={form.contactMethod}
-              onChange={handleChange('contactMethod')}
-            >
-              <option value="platform">Über die Plattform</option>
-              <option value="whatsapp">WhatsApp</option>
-              <option value="telefon">Telefon</option>
-              <option value="persoenlich">Persönlich</option>
-            </select>
-          </div>
-
-          {form.contactMethod !== 'platform' && form.contactMethod !== 'persoenlich' && (
-            <div className="input-group">
-              <label htmlFor="contactInfo">
-                {form.contactMethod === 'whatsapp' ? 'WhatsApp-Nummer' : 'Telefonnummer'}
-              </label>
-              <input
-                id="contactInfo"
-                type="tel"
-                className="input"
-                value={form.contactInfo}
-                onChange={handleChange('contactInfo')}
-                placeholder="z.B. 0171 1234567"
-              />
-            </div>
-          )}
 
           <button
             type="submit"

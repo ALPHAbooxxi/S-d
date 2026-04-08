@@ -1,0 +1,115 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at top right, rgba(234, 200, 1, 0.16), transparent 40%),
+    linear-gradient(180deg, #ffffff 0%, #fffdf2 100%);
+  border: 1px solid rgba(234, 200, 1, 0.24);
+}
+
+.copy {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--svd-dark-500);
+}
+
+.title {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.username {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-full);
+  background: var(--svd-dark-700);
+  color: var(--svd-yellow-400);
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.description {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.qrWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: var(--radius-lg);
+  border: 1px dashed rgba(17, 17, 19, 0.12);
+}
+
+.qrImage {
+  width: min(100%, 260px);
+  aspect-ratio: 1;
+  object-fit: contain;
+}
+
+.qrLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 220px;
+  height: 220px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-light);
+}
+
+.stat strong {
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--svd-dark-700);
+}
+
+.stat span {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.actions :global(.btn) {
+  flex: 1 1 180px;
+}

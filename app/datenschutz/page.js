@@ -33,10 +33,10 @@ export default function DatenschutzPage() {
         </p>
         <ul>
           <li><strong>Registrierung:</strong> Benutzername, E-Mail-Adresse, Passwort (verschlüsselt gespeichert)</li>
-          <li><strong>Profil:</strong> Anzeigename, Kontaktmethode (optional: Telefonnummer, WhatsApp-Nummer)</li>
+          <li><strong>Profil:</strong> Anzeigename und Benutzername fuer die Kommunikation in der App</li>
           <li><strong>Sammlung:</strong> Welche Sticker-Nummern Sie besitzen und deren Anzahl</li>
           <li><strong>Nachrichten:</strong> Nachrichten, die Sie über die Plattform mit anderen Nutzern austauschen</li>
-          <li><strong>Angebote:</strong> Von Ihnen erstellte Tausch- oder Verkaufsangebote</li>
+          <li><strong>Tauschanfragen:</strong> Von Ihnen erstellte oder empfangene Anfragen innerhalb der App</li>
         </ul>
 
         <h2>3. Zweck der Datenverarbeitung</h2>
@@ -47,7 +47,7 @@ export default function DatenschutzPage() {
           <li>Bereitstellung und Verwaltung Ihres Benutzerkontos</li>
           <li>Ermittlung passender Tauschpartner (Matching-Algorithmus)</li>
           <li>Kommunikation zwischen Nutzern über die Nachrichten-Funktion</li>
-          <li>Anzeige und Verwaltung von Tausch- und Verkaufsangeboten</li>
+          <li>Anzeige und Verwaltung von Tauschanfragen innerhalb der App</li>
           <li>Versand von Push-Benachrichtigungen (nur mit Ihrer Zustimmung)</li>
         </ul>
 
@@ -57,7 +57,7 @@ export default function DatenschutzPage() {
         </p>
         <ul>
           <li><strong>Art. 6 Abs. 1 lit. b DSGVO:</strong> Erfüllung eines Vertrages (Nutzung der Plattform)</li>
-          <li><strong>Art. 6 Abs. 1 lit. a DSGVO:</strong> Einwilligung (Push-Benachrichtigungen, optionale Kontaktdaten)</li>
+          <li><strong>Art. 6 Abs. 1 lit. a DSGVO:</strong> Einwilligung (Push-Benachrichtigungen)</li>
           <li><strong>Art. 6 Abs. 1 lit. f DSGVO:</strong> Berechtigtes Interesse (Sicherheit, Fehlerbehebung)</li>
         </ul>
 
@@ -124,7 +124,7 @@ export default function DatenschutzPage() {
         <p>
           Sie können Ihr Konto jederzeit über Ihr Profil oder per E-Mail an uns löschen lassen.
           Bei der Löschung werden alle Ihre personenbezogenen Daten, Ihre Sticker-Sammlung,
-          Nachrichten und Angebote unwiderruflich entfernt.
+          Nachrichten und Tauschanfragen unwiderruflich entfernt.
         </p>
 
         <h2>11. Datensicherheit</h2>

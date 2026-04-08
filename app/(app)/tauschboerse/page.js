@@ -1,27 +1,25 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { useStickers } from '@/lib/stickers-context'
-import { findMatches, loadAllUsersStickers } from '@/lib/matching'
+import { ArrowDownIcon, ArrowUpIcon, CloseIcon, CollectionIcon, SearchIcon } from '@/components/AppIcons'
+import { useTrades } from '@/lib/trades-context'
+import { findMatches, loadUserDirectory, searchUsersByUsername } from '@/lib/matching'
 import styles from './tauschboerse.module.css'
 
 export default function TauschboersePage() {
   const { user } = useAuth()
   const { stickers, duplicateStickers, missingStickers } = useStickers()
-  const [matches, setMatches] = useState([])
+  const { createTrade } = useTrades()
+  const router = useRouter()
   const [searchNumber, setSearchNumber] = useState('')
+  const [searchUsername, setSearchUsername] = useState('')
   const [activeTab, setActiveTab] = useState('matches')
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (user) {
-      const allUsersStickers = loadAllUsersStickers(user.id)
-      const found = findMatches(stickers, allUsersStickers)
-      setMatches(found)
-      setLoading(false)
-    }
-  }, [user, stickers])
+  const deferredUsername = useDeferredValue(searchUsername)
+  const directory = useMemo(() => (user ? loadUserDirectory(user.id) : []), [user])
+  const matches = useMemo(() => findMatches(stickers, directory), [directory, stickers])
 
   const filteredMatches = useMemo(() => {
     if (!searchNumber) return matches
@@ -32,44 +30,146 @@ export default function TauschboersePage() {
     )
   }, [matches, searchNumber])
 
+  const directUserResults = useMemo(() => {
+    if (!deferredUsername.trim()) return []
+
+    const matchedUsers = searchUsersByUsername(deferredUsername, directory)
+    return matchedUsers.map((entry) => {
+      const match = matches.find((item) => item.userId === entry.userId)
+      return {
+        ...entry,
+        theyCanGive: match?.theyCanGive || [],
+        iCanGive: match?.iCanGive || [],
+        mutualCount: match?.mutualCount || 0,
+      }
+    })
+  }, [deferredUsername, directory, matches])
+
   const hasStickers = Object.keys(stickers).length > 0
+
+  const handleOpenConversation = (partnerId) => {
+    router.push(`/nachrichten?partner=${partnerId}`)
+  }
+
+  const handleTradeRequest = (partner) => {
+    createTrade(
+      partner.userId,
+      partner.iCanGive?.slice(0, 8) || [],
+      partner.theyCanGive?.slice(0, 8) || []
+    )
+    router.push(`/nachrichten?partner=${partner.userId}`)
+  }
 
   return (
     <div className={styles.page}>
       <div className={styles.header}>
         <h1 className={styles.title}>Tauschbörse</h1>
         <p className={styles.subtitle}>
-          Finde Tauschpartner oder mache ein Geld-Angebot
+          Finde Nutzer, starte Nachrichten und sende Tauschanfragen direkt in der App.
         </p>
+      </div>
+
+      <div className={styles.discoveryCard}>
+        <div>
+          <div>
+            <h2 className={styles.discoveryTitle}>Benutzername finden</h2>
+            <p className={styles.discoveryText}>
+              Suche direkt nach einem Nutzer oder einer Freundin per @Benutzername.
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.searchBar}>
+          <SearchIcon size={16} strokeWidth={2.5} />
+          <input
+            type="text"
+            className={styles.searchInput}
+            value={searchUsername}
+            onChange={(e) => setSearchUsername(e.target.value)}
+            placeholder="@benutzername suchen..."
+            id="search-username"
+          />
+          {searchUsername && (
+            <button className={styles.clearSearch} onClick={() => setSearchUsername('')} aria-label="Suche leeren">
+              <CloseIcon size={14} strokeWidth={2.4} />
+            </button>
+          )}
+        </div>
+
+        {searchUsername && (
+          <div className={styles.directResults}>
+            {directUserResults.length === 0 ? (
+              <div className={styles.miniEmpty}>
+                Kein Benutzername gefunden. Probiere einen anderen Namen oder teile den QR-Code aus dem Profil.
+              </div>
+            ) : (
+              directUserResults.map((entry) => (
+                <div key={entry.userId} className={styles.directCard}>
+                  <div className={styles.matchHeader}>
+                    <div className={styles.matchAvatar}>
+                      {(entry.displayName || entry.username).charAt(0).toUpperCase()}
+                    </div>
+                    <div className={styles.matchInfo}>
+                      <span className={styles.matchName}>{entry.displayName || entry.username}</span>
+                      <span className={styles.matchUsername}>@{entry.username}</span>
+                    </div>
+                    <span className="badge badge-dark">
+                      {entry.mutualCount > 0 ? `${entry.mutualCount} Match` : 'Direktkontakt'}
+                    </span>
+                  </div>
+
+                  <div className={styles.directMeta}>
+                    <span>{entry.ownedCount} Sticker eingetragen</span>
+                    <span>{entry.duplicateCount} doppelte Sticker</span>
+                    {entry.theyCanGive.length > 0 || entry.iCanGive.length > 0 ? (
+                      <span>{entry.theyCanGive.length + entry.iCanGive.length} moegliche Tauschangebote</span>
+                    ) : (
+                      <span>Noch kein direkter Sticker-Match</span>
+                    )}
+                  </div>
+
+                  <div className={styles.matchActions}>
+                    <button className="btn btn-secondary btn-sm" onClick={() => handleOpenConversation(entry.userId)}>
+                      Nachricht senden
+                    </button>
+                    <button className="btn btn-dark btn-sm" onClick={() => handleTradeRequest(entry)}>
+                      Tauschanfrage
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
       {!hasStickers ? (
         <div className="empty-state">
-          <span className="empty-state-icon">📋</span>
+          <span className="empty-state-icon"><CollectionIcon size={40} strokeWidth={1.8} /></span>
           <span className="empty-state-title">Noch keine Sticker eingetragen</span>
           <span className="empty-state-text">
-            Trage zuerst deine Sticker in der Sammlung ein, damit wir Tauschpartner finden können.
+            Trage zuerst deine Sticker in der Sammlung ein, damit wir passende Tauschpartner berechnen koennen.
           </span>
         </div>
       ) : (
         <>
           {/* Search */}
           <div className={styles.searchBar}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
+            <SearchIcon size={16} strokeWidth={2.5} />
             <input
               type="number"
               className={styles.searchInput}
               value={searchNumber}
               onChange={(e) => setSearchNumber(e.target.value)}
-              placeholder="Sticker-Nr. suchen..."
+              placeholder="Sticker-Nr. filtern..."
               min="1"
               max="708"
               id="search-sticker"
             />
             {searchNumber && (
-              <button className={styles.clearSearch} onClick={() => setSearchNumber('')}>✕</button>
+              <button className={styles.clearSearch} onClick={() => setSearchNumber('')} aria-label="Filter leeren">
+                <CloseIcon size={14} strokeWidth={2.4} />
+              </button>
             )}
           </div>
 
@@ -105,13 +205,9 @@ export default function TauschboersePage() {
           {/* Match List */}
           {activeTab === 'matches' && (
             <div className={styles.matchList}>
-              {loading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
-                  <div className="spinner" />
-                </div>
-              ) : filteredMatches.length === 0 ? (
+              {filteredMatches.length === 0 ? (
                 <div className="empty-state">
-                  <span className="empty-state-icon">🔍</span>
+                  <span className="empty-state-icon"><SearchIcon size={40} strokeWidth={1.8} /></span>
                   <span className="empty-state-title">
                     {searchNumber ? 'Kein Ergebnis' : 'Noch keine Tauschpartner'}
                   </span>
@@ -143,7 +239,7 @@ export default function TauschboersePage() {
                       {match.theyCanGive.length > 0 && (
                         <div className={styles.matchRow}>
                           <span className={styles.matchRowLabel}>
-                            <span className={styles.matchArrow}>⬇</span> Du bekommst
+                            <span className={styles.matchArrow}><ArrowDownIcon size={13} strokeWidth={2.3} /></span> Du bekommst
                           </span>
                           <div className={styles.stickerChips}>
                             {match.theyCanGive.slice(0, 8).map(n => (
@@ -158,7 +254,7 @@ export default function TauschboersePage() {
                       {match.iCanGive.length > 0 && (
                         <div className={styles.matchRow}>
                           <span className={styles.matchRowLabel}>
-                            <span className={styles.matchArrow}>⬆</span> Du gibst
+                            <span className={styles.matchArrow}><ArrowUpIcon size={13} strokeWidth={2.3} /></span> Du gibst
                           </span>
                           <div className={styles.stickerChips}>
                             {match.iCanGive.slice(0, 8).map(n => (
@@ -173,17 +269,12 @@ export default function TauschboersePage() {
                     </div>
 
                     <div className={styles.matchActions}>
-                      {match.contactMethod && match.contactMethod !== 'platform' && (
-                        <span className={styles.contactBadge}>
-                          {match.contactMethod === 'whatsapp' ? '📱 WhatsApp' :
-                           match.contactMethod === 'telefon' ? '📞 Telefon' : '🤝 Persönlich'}
-                        </span>
-                      )}
-                      <button className="btn btn-dark btn-sm" id={`trade-${match.userId}`}>
-                        🔄 Tauschen
+                      <span className={styles.contactBadge}>Kommunikation nur in der App</span>
+                      <button className="btn btn-secondary btn-sm" onClick={() => handleOpenConversation(match.userId)}>
+                        Nachricht senden
                       </button>
-                      <button className="btn btn-primary btn-sm" id={`buy-${match.userId}`}>
-                        💰 Kaufen
+                      <button className="btn btn-dark btn-sm" id={`trade-${match.userId}`} onClick={() => handleTradeRequest(match)}>
+                        Tauschanfrage
                       </button>
                     </div>
                   </div>

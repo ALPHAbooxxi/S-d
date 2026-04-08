@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef } from 'react'
+import { CheckIcon } from '@/components/AppIcons'
 import { ALBUM_CONFIG, getCategoryForSticker, useStickers } from '@/lib/stickers-context'
 import styles from './StickerGrid.module.css'
 
@@ -29,6 +30,12 @@ export default function StickerGrid() {
     return Array.from({ length: cat.range[1] - cat.range[0] + 1 }, (_, i) => cat.range[0] + i)
   }
 
+  // Show a brief toast
+  const showToast = useCallback((msg) => {
+    setToast(msg)
+    setTimeout(() => setToast(null), 2000)
+  }, [])
+
   const handleQuickAdd = useCallback(() => {
     if (!quickInput.trim()) return
     const numbers = []
@@ -51,13 +58,7 @@ export default function StickerGrid() {
       setQuickInput('')
       showToast(`${numbers.length} Sticker hinzugefügt!`)
     }
-  }, [quickInput, bulkAdd])
-
-  // Show a brief toast
-  const showToast = (msg) => {
-    setToast(msg)
-    setTimeout(() => setToast(null), 2000)
-  }
+  }, [bulkAdd, quickInput, showToast])
 
   // Tap handler — depends on mode
   const handleTap = (num) => {
@@ -197,7 +198,7 @@ export default function StickerGrid() {
                 </span>
               )}
               {isOwned && !isDuplicate && (
-                <span className={styles.checkmark}>✓</span>
+                <span className={styles.checkmark}><CheckIcon size={12} strokeWidth={2.6} /></span>
               )}
             </button>
           )
