@@ -1,7 +1,7 @@
 'use client'
 
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { ChatIcon, CloseIcon, SearchIcon } from '@/components/AppIcons'
 import { createClient } from '@/lib/supabase/client'
@@ -16,30 +16,15 @@ function formatConversationTime(value) {
   })
 }
 
-function tradeStatusLabel(status) {
-  if (status === 'accepted') return 'Angenommen'
-  if (status === 'declined') return 'Abgelehnt'
-  if (status === 'completed') return 'Erledigt'
-  return 'Offen'
-}
-
 export default function NachrichtenPage() {
   const { user } = useAuth()
   const router = useRouter()
-  const searchParams = useSearchParams()
   const supabase = useMemo(() => createClient(), [])
-  const partnerFromUrl = searchParams.get('partner')
   const {
     getConversations,
     unreadCount,
-    getMessagesWithPartner,
-    getTradesWithPartner,
-    sendMessage,
-    markAsRead,
-    updateTradeStatus,
   } = useTrades()
   const conversations = getConversations()
-  const [draft, setDraft] = useState('')
   const [searchUsername, setSearchUsername] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [searchLoading, setSearchLoading] = useState(false)
@@ -53,23 +38,6 @@ export default function NachrichtenPage() {
     () => new Set(directory.map((entry) => entry.userId)),
     [directory]
   )
-
-  const selectedPartnerId = partnerFromUrl || conversations[0]?.partnerId || null
-  const discoveredPartner = searchResults.find((entry) => entry.userId === selectedPartnerId) || null
-  const selectedPartner = !selectedPartnerId
-    ? null
-    : directory.find((entry) => entry.userId === selectedPartnerId) ||
-      loadUserProfile(selectedPartnerId) ||
-      discoveredPartner
-
-  const threadMessages = selectedPartnerId ? getMessagesWithPartner(selectedPartnerId) : []
-  const threadTrades = selectedPartnerId ? getTradesWithPartner(selectedPartnerId) : []
-
-  useEffect(() => {
-    if (selectedPartnerId) {
-      markAsRead(selectedPartnerId)
-    }
-  }, [markAsRead, selectedPartnerId])
 
   useEffect(() => {
     let active = true
@@ -126,19 +94,7 @@ export default function NachrichtenPage() {
     if (partnerMeta) {
       cacheDiscoveredUser(partnerMeta)
     }
-    router.replace(`/nachrichten?partner=${partnerId}`)
-  }
-
-  const handleSubmit = (event) => {
-    event.preventDefault()
-    if (!selectedPartnerId || !draft.trim()) return
-
-    sendMessage({
-      receiverId: selectedPartnerId,
-      content: draft,
-      tradeId: threadTrades[0]?.id || null,
-    })
-    setDraft('')
+    router.push(`/nachrichten/${partnerId}`)
   }
 
   return (
@@ -215,12 +171,12 @@ export default function NachrichtenPage() {
         )}
       </div>
 
-      {conversations.length === 0 && !selectedPartner ? (
+      {conversations.length === 0 ? (
         <div className="empty-state">
           <span className="empty-state-icon"><ChatIcon size={40} strokeWidth={1.8} /></span>
           <span className="empty-state-title">Noch keine Nachrichten</span>
           <span className="empty-state-text">
-            Wenn du einen Tausch anfragst oder jemand dich kontaktiert, erscheinen hier deine Unterhaltungen.
+            Starte einen Chat ueber die Suche oder direkt aus einem Match in der Tauschboerse.
           </span>
         </div>
       ) : (
@@ -230,12 +186,11 @@ export default function NachrichtenPage() {
               const partner =
                 directory.find((entry) => entry.userId === conv.partnerId) ||
                 loadUserProfile(conv.partnerId)
-              const isActive = conv.partnerId === selectedPartnerId
 
               return (
                 <button
                   key={conv.partnerId}
-                  className={`${styles.conversationCard} ${isActive ? styles.conversationActive : ''}`}
+                  className={styles.conversationCard}
                   onClick={() => handleSelectPartner(conv.partnerId, partner)}
                 >
                   <div className={styles.convAvatar}>
@@ -260,98 +215,6 @@ export default function NachrichtenPage() {
               )
             })}
           </div>
-
-          {selectedPartner && (
-            <div className={styles.threadCard}>
-              <div className={styles.threadHeader}>
-                <div className={styles.threadAvatar}>
-                  {(selectedPartner.displayName || selectedPartner.username).charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <h2 className={styles.threadName}>{selectedPartner.displayName || selectedPartner.username}</h2>
-                  <p className={styles.threadHandle}>@{selectedPartner.username}</p>
-                </div>
-              </div>
-
-              {threadTrades.length > 0 && (
-                <div className={styles.tradeList}>
-                  {threadTrades.map((trade) => {
-                    const isIncoming = trade.receiverId === user?.id
-                    const canRespond = isIncoming && trade.status === 'pending'
-                    const stickersYouGive = isIncoming ? trade.wantedStickers : trade.offeredStickers
-                    const stickersYouGet = isIncoming ? trade.offeredStickers : trade.wantedStickers
-
-                    return (
-                      <div key={trade.id} className={styles.tradeCard}>
-                        <div className={styles.tradeTop}>
-                          <strong>Tauschanfrage</strong>
-                          <span className={`badge ${trade.status === 'accepted' ? 'badge-success' : trade.status === 'declined' ? 'badge-error' : 'badge-dark'}`}>
-                            {tradeStatusLabel(trade.status)}
-                          </span>
-                        </div>
-                        <div className={styles.tradeGrid}>
-                          <div>
-                            <span className={styles.tradeLabel}>Du gibst</span>
-                            <p>{stickersYouGive.length > 0 ? stickersYouGive.map((number) => `#${number}`).join(', ') : 'Noch offen'}</p>
-                          </div>
-                          <div>
-                            <span className={styles.tradeLabel}>Du bekommst</span>
-                            <p>{stickersYouGet.length > 0 ? stickersYouGet.map((number) => `#${number}`).join(', ') : 'Noch offen'}</p>
-                          </div>
-                        </div>
-
-                        {canRespond && (
-                          <div className={styles.tradeActions}>
-                            <button className="btn btn-secondary btn-sm" onClick={() => updateTradeStatus(trade.id, 'declined')}>
-                              Ablehnen
-                            </button>
-                            <button className="btn btn-primary btn-sm" onClick={() => updateTradeStatus(trade.id, 'accepted')}>
-                              Annehmen
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-
-              <div className={styles.messageList}>
-                {threadMessages.length === 0 ? (
-                  <div className={styles.threadEmpty}>
-                    Starte die Unterhaltung hier in der App. Externe Kontakte sind nicht mehr noetig.
-                  </div>
-                ) : (
-                  threadMessages.map((message) => {
-                    const ownMessage = message.senderId === user?.id
-
-                    return (
-                      <div
-                        key={message.id}
-                        className={`${styles.messageBubble} ${ownMessage ? styles.messageOwn : styles.messageOther}`}
-                      >
-                        <p>{message.content}</p>
-                        <span>{new Date(message.createdAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}</span>
-                      </div>
-                    )
-                  })
-                )}
-              </div>
-
-              <form className={styles.composer} onSubmit={handleSubmit}>
-                <textarea
-                  className={styles.composerInput}
-                  value={draft}
-                  onChange={(event) => setDraft(event.target.value)}
-                  placeholder="Nachricht schreiben..."
-                  rows={3}
-                />
-                <button className="btn btn-primary" type="submit">
-                  Senden
-                </button>
-              </form>
-            </div>
-          )}
         </div>
       )}
     </div>

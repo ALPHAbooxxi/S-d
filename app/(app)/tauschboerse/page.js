@@ -5,14 +5,12 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { useStickers } from '@/lib/stickers-context'
 import { ArrowDownIcon, ArrowUpIcon, CloseIcon, CollectionIcon, SearchIcon } from '@/components/AppIcons'
-import { useTrades } from '@/lib/trades-context'
 import { findMatches, loadUserDirectory } from '@/lib/matching'
 import styles from './tauschboerse.module.css'
 
 export default function TauschboersePage() {
   const { user } = useAuth()
   const { stickers, duplicateStickers, missingStickers } = useStickers()
-  const { createTrade } = useTrades()
   const router = useRouter()
   const [searchNumber, setSearchNumber] = useState('')
   const [activeTab, setActiveTab] = useState('matches')
@@ -23,7 +21,7 @@ export default function TauschboersePage() {
     if (!searchNumber) return matches
     const num = parseInt(searchNumber)
     if (isNaN(num)) return matches
-    return matches.filter(m =>
+  return matches.filter(m =>
       m.theyCanGive.includes(num) || m.iCanGive.includes(num)
     )
   }, [matches, searchNumber])
@@ -31,16 +29,17 @@ export default function TauschboersePage() {
   const hasStickers = Object.keys(stickers).length > 0
 
   const handleOpenConversation = (partnerId) => {
-    router.push(`/nachrichten?partner=${partnerId}`)
+    router.push(`/nachrichten/${partnerId}`)
   }
 
-  const handleTradeRequest = (partner) => {
-    createTrade(
-      partner.userId,
-      partner.iCanGive?.slice(0, 8) || [],
-      partner.theyCanGive?.slice(0, 8) || []
-    )
-    router.push(`/nachrichten?partner=${partner.userId}`)
+  const handlePrepareTrade = (partner) => {
+    const params = new URLSearchParams({
+      intent: 'trade',
+      give: (partner.iCanGive?.slice(0, 8) || []).join(','),
+      want: (partner.theyCanGive?.slice(0, 8) || []).join(','),
+    })
+
+    router.push(`/nachrichten/${partner.userId}?${params.toString()}`)
   }
 
   return (
@@ -48,7 +47,7 @@ export default function TauschboersePage() {
       <div className={styles.header}>
         <h1 className={styles.title}>Tauschbörse</h1>
         <p className={styles.subtitle}>
-          Finde passende Tauschpartner und filtere direkt nach Sticker-Nummern.
+          Automatische Match-Vorschlaege auf Basis deiner doppelten und fehlenden Sticker.
         </p>
       </div>
 
@@ -178,12 +177,12 @@ export default function TauschboersePage() {
                     </div>
 
                     <div className={styles.matchActions}>
-                      <span className={styles.contactBadge}>Kommunikation nur in der App</span>
+                      <span className={styles.contactBadge}>Erst Match pruefen, dann im Chat konkret anfragen</span>
                       <button className="btn btn-secondary btn-sm" onClick={() => handleOpenConversation(match.userId)}>
-                        Nachricht senden
+                        Chat oeffnen
                       </button>
-                      <button className="btn btn-dark btn-sm" id={`trade-${match.userId}`} onClick={() => handleTradeRequest(match)}>
-                        Tauschanfrage
+                      <button className="btn btn-dark btn-sm" id={`trade-${match.userId}`} onClick={() => handlePrepareTrade(match)}>
+                        Tausch vorbereiten
                       </button>
                     </div>
                   </div>

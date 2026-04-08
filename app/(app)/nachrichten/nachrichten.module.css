@@ -129,6 +129,42 @@
   gap: 16px;
 }
 
+.detailPage {
+  padding: 20px;
+  padding-top: calc(20px + var(--safe-top));
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.detailTopBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.detailBack {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.detailIdentity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .conversationList {
   display: flex;
   flex-direction: column;
@@ -239,6 +275,16 @@
   font-weight: 800;
 }
 
+.draftCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background: linear-gradient(180deg, #fffef7 0%, #ffffff 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(234, 200, 1, 0.26);
+}
+
 .tradeList {
   display: flex;
   flex-direction: column;
@@ -282,6 +328,15 @@
   font-size: 0.82rem;
   color: var(--text-secondary);
   line-height: 1.5;
+}
+
+.tradeNote {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
 }
 
 .tradeActions {
