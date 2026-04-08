@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import { CheckIcon } from '@/components/AppIcons'
 import { ALBUM_CONFIG, getCategoryForSticker, useStickers } from '@/lib/stickers-context'
 import styles from './StickerGrid.module.css'
 
 export default function StickerGrid() {
   const { stickers, incrementSticker, decrementSticker, bulkAdd, setQuantity } = useStickers()
-  const [activeCategory, setActiveCategory] = useState('all')
+  const [activeCategory, setActiveCategory] = useState(ALBUM_CONFIG.categories[0]?.id || 'all')
   const [quickInput, setQuickInput] = useState('')
   const [showQuickInput, setShowQuickInput] = useState(false)
   const [mode, setMode] = useState('add') // 'add' or 'remove'
@@ -17,9 +17,30 @@ export default function StickerGrid() {
   const longPressTriggered = useRef(false)
 
   const categories = [
-    { id: 'all', name: 'Alle' },
+    { id: 'all', name: 'Gesamtalbum', shortName: 'Alle', range: [1, ALBUM_CONFIG.totalStickers] },
     ...ALBUM_CONFIG.categories,
   ]
+
+  const categorySummaries = useMemo(() => {
+    return ALBUM_CONFIG.categories.map((category) => {
+      const numbers = Array.from(
+        { length: category.range[1] - category.range[0] + 1 },
+        (_, index) => category.range[0] + index
+      )
+      const ownedCount = numbers.filter((number) => (stickers[number] || 0) > 0).length
+      const duplicateCount = numbers.reduce(
+        (sum, number) => sum + Math.max(0, (stickers[number] || 0) - 1),
+        0
+      )
+
+      return {
+        ...category,
+        total: numbers.length,
+        ownedCount,
+        duplicateCount,
+      }
+    })
+  }, [stickers])
 
   const getVisibleStickers = () => {
     if (activeCategory === 'all') {
@@ -95,6 +116,21 @@ export default function StickerGrid() {
   }
 
   const visibleStickers = getVisibleStickers()
+  const activeCategoryData = activeCategory === 'all'
+    ? {
+        id: 'all',
+        name: 'Gesamtalbum',
+        range: [1, ALBUM_CONFIG.totalStickers],
+        total: ALBUM_CONFIG.totalStickers,
+        ownedCount: Object.keys(stickers).length,
+        duplicateCount: Object.values(stickers).reduce(
+          (sum, quantity) => sum + Math.max(0, quantity - 1),
+          0
+        ),
+      }
+    : categorySummaries.find((category) => category.id === activeCategory)
+
+  const selectedCategory = selectedSticker ? getCategoryForSticker(selectedSticker) : null
 
   return (
     <div className={styles.container}>
@@ -158,6 +194,38 @@ export default function StickerGrid() {
         </div>
       )}
 
+      <div className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <span className={styles.sectionEyebrow}>Albumbereiche</span>
+            <h3 className={styles.sectionTitle}>Sticker nach Bereich pflegen</h3>
+          </div>
+          <button
+            className={`${styles.overviewBtn} ${activeCategory === 'all' ? styles.overviewBtnActive : ''}`}
+            onClick={() => setActiveCategory('all')}
+          >
+            Alle 708
+          </button>
+        </div>
+
+        <div className={styles.sectionGrid}>
+          {categorySummaries.map((category) => (
+            <button
+              key={category.id}
+              className={`${styles.sectionItem} ${activeCategory === category.id ? styles.sectionItemActive : ''}`}
+              onClick={() => setActiveCategory(category.id)}
+            >
+              <strong>{category.shortName || category.name}</strong>
+              <span className={styles.sectionRange}>#{category.range[0]}-{category.range[1]}</span>
+              <div className={styles.sectionMeta}>
+                <span>{category.ownedCount}/{category.total}</span>
+                <span>{category.duplicateCount} doppelt</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Category Filter */}
       <div className={styles.categoryScroll}>
         {categories.map(cat => (
@@ -166,10 +234,24 @@ export default function StickerGrid() {
             className={`${styles.categoryChip} ${activeCategory === cat.id ? styles.activeChip : ''}`}
             onClick={() => setActiveCategory(cat.id)}
           >
-            {cat.name}
+            {cat.shortName || cat.name}
+            {cat.range ? <span className={styles.categoryRange}>#{cat.range[0]}-{cat.range[1]}</span> : null}
           </button>
         ))}
       </div>
+
+      {activeCategoryData && (
+        <div className={styles.activeSummary}>
+        <div>
+            <strong>{activeCategoryData.shortName || activeCategoryData.name}</strong>
+            <span>#{activeCategoryData.range[0]}-{activeCategoryData.range[1]}</span>
+          </div>
+          <div className={styles.activeSummaryMeta}>
+            <span>{activeCategoryData.ownedCount}/{activeCategoryData.total} eingetragen</span>
+            <span>{activeCategoryData.duplicateCount} doppelt</span>
+          </div>
+        </div>
+      )}
 
       {/* Sticker Grid */}
       <div className={styles.grid}>
@@ -237,7 +319,7 @@ export default function StickerGrid() {
             <div className={styles.popupHeader}>
               <span className={styles.popupNumber}>#{selectedSticker}</span>
               <span className={styles.popupCategory}>
-                {getCategoryForSticker(selectedSticker)?.name || ''}
+                {selectedCategory ? `Bereich #${selectedCategory.range[0]}-${selectedCategory.range[1]}` : ''}
               </span>
             </div>
 

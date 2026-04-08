@@ -4,6 +4,102 @@
   gap: var(--space-md);
 }
 
+.sectionCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at top right, rgba(234, 200, 1, 0.14), transparent 40%),
+    linear-gradient(180deg, #ffffff 0%, #fffdf4 100%);
+  border: 1px solid rgba(234, 200, 1, 0.24);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sectionEyebrow {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.overviewBtn {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: var(--radius-full);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.overviewBtnActive {
+  background: var(--svd-dark-700);
+  border-color: var(--svd-dark-700);
+  color: var(--svd-yellow-500);
+}
+
+.sectionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 10px;
+}
+
+.sectionItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--border-light);
+  text-align: left;
+  color: var(--text-primary);
+}
+
+.sectionItem strong {
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.sectionItemActive {
+  border-color: var(--svd-yellow-400);
+  box-shadow: var(--shadow-sm);
+  background: var(--svd-yellow-50);
+}
+
+.sectionRange {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.sectionMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
 /* ===== Mode Switch ===== */
 .modeSwitch {
   display: flex;
@@ -103,7 +199,7 @@
 .categoryScroll::-webkit-scrollbar { display: none; }
 
 .categoryChip {
-  padding: 7px 12px;
+  padding: 8px 12px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-full);
@@ -113,6 +209,9 @@
   white-space: nowrap;
   transition: all var(--transition-fast);
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .categoryChip:hover {
@@ -126,17 +225,65 @@
   border-color: var(--svd-dark-700);
 }
 
+.categoryRange {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(17, 17, 19, 0.06);
+  font-size: 0.64rem;
+  font-weight: 800;
+  color: inherit;
+}
+
+.activeSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--gray-50);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+}
+
+.activeSummary strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.activeSummary > div:first-child span {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.activeSummaryMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
 /* ===== Sticker Grid ===== */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
-  gap: 5px;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 6px;
 }
 
 @media (min-width: 480px) {
   .grid {
-    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
-    gap: 6px;
+    grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+    gap: 8px;
   }
 }
 
@@ -147,7 +294,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  border-radius: 6px;
+  border-radius: 10px;
   background: var(--gray-100);
   border: 2px solid transparent;
   color: var(--gray-400);
@@ -188,8 +335,8 @@
 
 .stickerNumber {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: 0.74rem;
+  font-weight: 700;
 }
 
 .duplicateBadge {
@@ -262,6 +409,18 @@
   font-size: 0.68rem;
   color: var(--text-muted);
   font-style: italic;
+}
+
+@media (max-width: 640px) {
+  .sectionHeader,
+  .activeSummary {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .activeSummaryMeta {
+    align-items: flex-start;
+  }
 }
 
 /* ===== Toast ===== */

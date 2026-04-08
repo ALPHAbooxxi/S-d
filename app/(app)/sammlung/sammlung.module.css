@@ -29,6 +29,8 @@
 /* Stats */
 .statsSection { margin-bottom: 4px; }
 
+.overviewSection { margin-bottom: 4px; }
+
 .progressCard {
   display: flex;
   align-items: center;
