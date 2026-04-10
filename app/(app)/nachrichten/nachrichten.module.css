@@ -480,6 +480,40 @@
   box-shadow: 0 0 0 3px rgba(234, 200, 1, 0.18);
 }
 
+.counterSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.counterChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.counterChip {
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.counterChip:hover {
+  border-color: var(--svd-yellow-400);
+}
+
+.counterChipSelected {
+  background: var(--svd-yellow-400);
+  border-color: var(--svd-yellow-500);
+  color: var(--text-on-yellow);
+}
+
 @media (min-width: 768px) {
   .tradeGrid {
     grid-template-columns: 1fr 1fr;

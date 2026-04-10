@@ -26,13 +26,14 @@
   font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 900;
-  color: var(--svd-dark-700);
+  color: inherit;
   line-height: 1;
 }
 
 .label {
   font-size: 0.6rem;
-  color: var(--text-muted);
+  color: inherit;
+  opacity: 0.8;
   font-weight: 600;
   margin-top: 2px;
   text-transform: uppercase;

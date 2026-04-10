@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth-context'
 import { createClient } from '@/lib/supabase/client'
 import { cacheDiscoveredUser, loadUserDirectory, loadUserProfile } from '@/lib/matching'
 import { useTrades } from '@/lib/trades-context'
+import { useStickers } from '@/lib/stickers-context'
 import styles from '../nachrichten.module.css'
 
 function tradeStatusLabel(status) {
@@ -48,7 +49,9 @@ function ChatDetailContent() {
     loading,
     syncError,
     refreshTrades,
+    createCounterOffer,
   } = useTrades()
+  const { bulkAdd, bulkRemove, setQuantity, incrementSticker, decrementSticker, stickers } = useStickers()
   const [draft, setDraft] = useState('')
   const [tradeNote, setTradeNote] = useState('')
   const [deleteError, setDeleteError] = useState('')
@@ -58,6 +61,15 @@ function ChatDetailContent() {
   const [sendingTrade, setSendingTrade] = useState(false)
   const [messageError, setMessageError] = useState('')
   const [tradeError, setTradeError] = useState('')
+  const [toastMessage, setToastMessage] = useState(null)
+  
+  // Counter Offer State
+  const [counterOfferTradeId, setCounterOfferTradeId] = useState(null)
+  const [counterGive, setCounterGive] = useState([])
+  const [counterWant, setCounterWant] = useState([])
+  const [counterNote, setCounterNote] = useState('')
+  const [sendingCounter, setSendingCounter] = useState(false)
+  const [counterError, setCounterError] = useState('')
   const [lastFailedDraft, setLastFailedDraft] = useState(null)
   const [partner, setPartner] = useState(() => {
     if (!user || !partnerId) return null
@@ -84,6 +96,11 @@ function ChatDetailContent() {
       want: suggestedWant,
     }
   }, [searchParams])
+
+  const showToast = (msg) => {
+    setToastMessage(msg)
+    setTimeout(() => setToastMessage(null), 3000)
+  }
 
   useEffect(() => {
     if (partnerId) {
@@ -220,6 +237,58 @@ function ChatDetailContent() {
     }
   }
 
+  const handleCompleteTrade = async (tradeId, stickersYouGet, stickersYouGive) => {
+    try {
+      await updateTradeStatus(tradeId, 'completed')
+      
+      // Auto-update stickers
+      bulkAdd(stickersYouGet)
+      bulkRemove(stickersYouGive)
+      
+      showToast('Tausch abgeschlossen! Sticker wurden aktualisiert.')
+    } catch (error) {
+      setMessageError(error.message || 'Fehler beim Abschliessen des Tauschs.')
+    }
+  }
+
+  const handleOpenCounterOffer = (trade) => {
+    setCounterOfferTradeId(trade.id)
+    setCounterGive(trade.wantedStickers || []) // You give what they wanted
+    setCounterWant(trade.offeredStickers || []) // You want what they offered
+    setCounterNote('Mein Gegenangebot:')
+    setCounterError('')
+  }
+
+  const handleSubmitCounterOffer = async () => {
+    if (sendingCounter) return
+    setSendingCounter(true)
+    setCounterError('')
+
+    try {
+      await createCounterOffer(
+        counterOfferTradeId,
+        partnerId,
+        counterGive,
+        counterWant,
+        counterNote
+      )
+      setCounterOfferTradeId(null)
+      showToast('Gegenangebot gesendet!')
+    } catch (err) {
+      setCounterError(err.message || 'Fehler beim Senden des Gegenangebots.')
+    } finally {
+      setSendingCounter(false)
+    }
+  }
+
+  const toggleCounterGive = (num) => {
+    setCounterGive(prev => prev.includes(num) ? prev.filter(n => n !== num) : [...prev, num].sort((a,b)=>a-b))
+  }
+  
+  const toggleCounterWant = (num) => {
+    setCounterWant(prev => prev.includes(num) ? prev.filter(n => n !== num) : [...prev, num].sort((a,b)=>a-b))
+  }
+
   return (
     <div className={styles.detailPage}>
       <div className={styles.detailTopBar}>
@@ -352,12 +421,15 @@ function ChatDetailContent() {
                         <button className="btn btn-primary btn-sm" onClick={() => updateTradeStatus(trade.id, 'accepted')}>
                           Annehmen
                         </button>
+                        <button className="btn btn-outline-yellow btn-sm" onClick={() => handleOpenCounterOffer(trade)}>
+                          Gegenangebot
+                        </button>
                       </div>
                     )}
 
                     {!canRespond && canComplete && (
                       <div className={styles.tradeActions}>
-                        <button className="btn btn-dark btn-sm" onClick={() => updateTradeStatus(trade.id, 'completed')}>
+                        <button className="btn btn-dark btn-sm" onClick={() => handleCompleteTrade(trade.id, stickersYouGet, stickersYouGive)}>
                           Als erledigt markieren
                         </button>
                       </div>
@@ -441,6 +513,73 @@ function ChatDetailContent() {
             </div>
           </div>
         </div>
+      )}
+
+      {counterOfferTradeId !== null && (
+        <div className="modal-overlay" onClick={() => setCounterOfferTradeId(null)}>
+          <div className="modal-content" onClick={(event) => event.stopPropagation()}>
+            <div className="modal-handle" />
+            <h3 style={{ marginBottom: 8 }}>Gegenangebot machen</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: 20 }}>
+              Wähle die Sticker aus, die du stattdessen tauschen möchtest.
+            </p>
+            
+            <div className={styles.counterSection}>
+              <span className={styles.tradeLabel}>Du gibst</span>
+              <div className={styles.counterChips}>
+                {[...new Set([...counterGive, ...partner?.stickers ? Object.keys(partner.stickers).filter(k => !stickers[k]).map(Number) : []])].sort((a,b)=>a-b).map(num => (
+                   <button 
+                     key={`give-${num}`}
+                     className={`${styles.counterChip} ${counterGive.includes(num) ? styles.counterChipSelected : ''}`}
+                     onClick={() => toggleCounterGive(num)}
+                   >
+                     #{num}
+                   </button>
+                ))}
+              </div>
+            </div>
+
+            <div className={styles.counterSection} style={{ marginTop: 16 }}>
+              <span className={styles.tradeLabel}>Du bekommst</span>
+              <div className={styles.counterChips}>
+                {[...new Set([...counterWant, ...Object.keys(stickers).filter(k => stickers[k] > 1).map(Number)])].sort((a,b)=>a-b).map(num => (
+                   <button 
+                     key={`want-${num}`}
+                     className={`${styles.counterChip} ${counterWant.includes(num) ? styles.counterChipSelected : ''}`}
+                     onClick={() => toggleCounterWant(num)}
+                   >
+                     #{num}
+                   </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="input-group" style={{ marginTop: 16 }}>
+              <label>Nachricht</label>
+              <textarea 
+                className={styles.composerInput} 
+                rows={2} 
+                value={counterNote}
+                onChange={e => setCounterNote(e.target.value)}
+              />
+            </div>
+            
+            {counterError && <p className={styles.inlineError} style={{ marginTop: 12 }}>{counterError}</p>}
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 24 }}>
+              <button className="btn btn-secondary btn-full" onClick={() => setCounterOfferTradeId(null)} disabled={sendingCounter}>
+                Abbrechen
+              </button>
+              <button className="btn btn-primary btn-full" onClick={handleSubmitCounterOffer} disabled={sendingCounter}>
+                {sendingCounter ? 'Sendet...' : 'Angebot senden'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toastMessage && (
+        <div className="toast toast-success">{toastMessage}</div>
       )}
     </div>
   )
