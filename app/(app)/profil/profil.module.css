@@ -289,7 +289,8 @@
 .pushRow {
   display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: space-between;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -347,63 +348,36 @@
   border-radius: var(--radius-full);
 }
 
-.pushActions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.pushPending {
-  color: var(--warning);
-  font-size: 0.78rem;
-  font-weight: 700;
-  flex-shrink: 0;
-  background: var(--warning-light);
-  padding: 4px 10px;
+.soundToggle {
+  width: 48px;
+  height: 28px;
+  padding: 3px;
   border-radius: var(--radius-full);
-}
-
-.pushStatusGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.pushStatusItem {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 14px;
-  background: var(--gray-50);
   border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
+  background: var(--gray-200);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 
-.pushStatusLabel {
-  font-size: 0.7rem;
-  color: var(--text-muted);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.soundToggle span {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), background var(--transition-fast);
 }
 
-.pushStatusItem strong {
-  font-size: 0.9rem;
-  color: var(--text-primary);
-  font-weight: 800;
+.soundToggleOn {
+  background: var(--svd-yellow-400);
+  border-color: var(--svd-yellow-500);
 }
 
-.pushHint {
-  margin-top: 16px;
-  padding: 12px 14px;
-  border-radius: var(--radius-md);
-  background: var(--svd-yellow-50);
-  border: 1px solid var(--svd-yellow-200);
-  color: var(--svd-dark-700);
-  font-size: 0.8rem;
-  line-height: 1.5;
+.soundToggleOn span {
+  transform: translateX(20px);
+  background: var(--svd-dark-700);
 }
 
 /* Legal Links */

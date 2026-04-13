@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { useStickers, ALBUM_CONFIG } from '@/lib/stickers-context'
 import { usePushNotifications } from '@/lib/use-push-notifications'
+import { getChatSoundsEnabled, saveChatSoundsEnabled } from '@/lib/chat-sound-settings'
 import { BellIcon, CheckIcon } from '@/components/AppIcons'
 import ProgressRing from '@/components/ProgressRing'
 import ProfileShareCard from '@/components/ProfileShareCard'
@@ -18,18 +19,11 @@ export default function ProfilPage() {
   const {
     supported: pushSupported,
     permission: pushPermission,
-    subscription: pushSubscription,
     connected: pushConnected,
     busy: pushBusy,
     error: pushError,
     message: pushMessage,
-    serverSubscriptionCount,
-    serverConfigured,
     requestPermission,
-    disablePush,
-    reconnectPush,
-    refreshServerStatus,
-    sendTestPush,
   } = usePushNotifications()
   const router = useRouter()
   const [editing, setEditing] = useState(false)
@@ -51,11 +45,16 @@ export default function ProfilPage() {
   const [savingPassword, setSavingPassword] = useState(false)
   const [deletingAccount, setDeletingAccount] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [chatSoundsEnabled, setChatSoundsEnabled] = useState(true)
 
   useEffect(() => {
     setForm({ displayName: user?.displayName || '' })
     setEmailForm({ email: user?.email || '' })
   }, [user?.displayName, user?.email])
+
+  useEffect(() => {
+    setChatSoundsEnabled(getChatSoundsEnabled())
+  }, [])
 
   const handleSave = async () => {
     setFeedback({ type: '', message: '' })
@@ -85,20 +84,12 @@ export default function ProfilPage() {
     await requestPermission()
   }
 
-  const handlePushDisable = async () => {
-    await disablePush()
-  }
-
-  const handlePushTest = async () => {
-    await sendTestPush()
-  }
-
-  const handlePushReconnect = async () => {
-    await reconnectPush()
-  }
-
-  const handlePushStatusRefresh = async () => {
-    await refreshServerStatus()
+  const handleChatSoundsToggle = () => {
+    setChatSoundsEnabled((current) => {
+      const next = !current
+      saveChatSoundsEnabled(next)
+      return next
+    })
   }
 
   const handleEmailSave = async () => {
@@ -310,21 +301,41 @@ export default function ProfilPage() {
 
               <div className={styles.separator} />
 
-              {pushSupported && (
-                <>
-                  <div className={styles.settingsBlock}>
-                    <div className={styles.settingsBlockHeader}>
-                      <div className={styles.settingsBlockTitleRow}>
-                        <span className={styles.pushIcon}><BellIcon size={18} strokeWidth={1.8} /></span>
-                        <div>
-                          <h3 className={styles.settingsBlockTitle}>Benachrichtigungen</h3>
-                          <p className={styles.settingsBlockCopy}>
-                            Aktiviere Push-Nachrichten für neue Nachrichten und Tauschanfragen direkt in der App.
-                          </p>
-                        </div>
-                      </div>
+              <div className={styles.settingsBlock}>
+                <div className={styles.settingsBlockHeader}>
+                  <div className={styles.settingsBlockTitleRow}>
+                    <span className={styles.pushIcon}><BellIcon size={18} strokeWidth={1.8} /></span>
+                    <div>
+                      <h3 className={styles.settingsBlockTitle}>Benachrichtigungen</h3>
+                      <p className={styles.settingsBlockCopy}>
+                        Sounds und Push für neue Nachrichten.
+                      </p>
                     </div>
+                  </div>
+                </div>
 
+                <div className={styles.pushRow}>
+                  <div className={styles.pushInfo}>
+                    <div>
+                      <span className={styles.pushLabel}>Chat-Sounds aktiv</span>
+                      <span className={styles.pushDesc}>
+                        {chatSoundsEnabled ? 'Kurze Töne beim Senden und Empfangen.' : 'Chat-Sounds sind ausgeschaltet.'}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className={`${styles.soundToggle} ${chatSoundsEnabled ? styles.soundToggleOn : ''}`}
+                    onClick={handleChatSoundsToggle}
+                    aria-pressed={chatSoundsEnabled}
+                    aria-label="Chat-Sounds aktiv"
+                  >
+                    <span />
+                  </button>
+                </div>
+
+                {pushSupported ? (
+                  <>
                     <div className={styles.pushRow}>
                       <div className={styles.pushInfo}>
                         <div>
@@ -332,73 +343,26 @@ export default function ProfilPage() {
                           <span className={styles.pushDesc}>
                             {pushPermission === 'granted'
                               ? pushConnected
-                                ? 'Verbunden – dieses Gerät kann Push-Nachrichten empfangen'
-                                : 'Browser erlaubt Push, aber dieses Gerät ist noch nicht sauber verbunden'
+                                ? 'Aktiv auf diesem Gerät.'
+                                : 'Tippe auf Aktivieren, um dieses Gerät zu verbinden.'
                               : pushPermission === 'denied'
-                              ? 'Blockiert – aktiviere sie in deinen Browser-Einstellungen'
-                              : 'Erhalte Benachrichtigungen bei neuen Nachrichten und Tauschanfragen'
+                              ? 'In den Browser-Einstellungen blockiert.'
+                              : 'Bei neuen Nachrichten und Tauschangeboten benachrichtigen.'
                             }
                           </span>
                         </div>
                       </div>
-                      {pushPermission !== 'granted' && pushPermission !== 'denied' && (
+                      {pushPermission === 'denied' ? (
+                        <span className={styles.pushDenied}>Blockiert</span>
+                      ) : pushConnected ? (
+                        <span className={styles.pushActive}><CheckIcon size={14} strokeWidth={2.2} />Aktiv</span>
+                      ) : (
                         <button className="btn btn-primary btn-sm" onClick={handlePushToggle} id="enable-push" disabled={pushBusy}>
                           {pushBusy ? 'Aktiviert...' : 'Aktivieren'}
                         </button>
                       )}
-                      {pushPermission === 'granted' && (
-                        <div className={styles.pushActions}>
-                          {pushConnected ? (
-                            <span className={styles.pushActive}><CheckIcon size={14} strokeWidth={2.2} />Verbunden</span>
-                          ) : (
-                            <span className={styles.pushPending}>Noch nicht verbunden</span>
-                          )}
-                          <button className="btn btn-secondary btn-sm" onClick={handlePushToggle} disabled={pushBusy || pushConnected}>
-                            {pushBusy && !pushConnected ? 'Verbindet...' : 'Verbinden'}
-                          </button>
-                          <button className="btn btn-secondary btn-sm" onClick={handlePushReconnect} disabled={pushBusy}>
-                            Neu verbinden
-                          </button>
-                          <button className="btn btn-secondary btn-sm" onClick={handlePushStatusRefresh} disabled={pushBusy}>
-                            Status prüfen
-                          </button>
-                          <button className="btn btn-secondary btn-sm" onClick={handlePushTest} disabled={pushBusy || !pushSubscription}>
-                            Test senden
-                          </button>
-                          <button className="btn btn-ghost btn-sm" onClick={handlePushDisable} disabled={pushBusy || !pushSubscription}>
-                            Dieses Gerät abmelden
-                          </button>
-                        </div>
-                      )}
-                      {pushPermission === 'denied' && (
-                        <span className={styles.pushDenied}>Blockiert</span>
-                      )}
                     </div>
 
-                    <div className={styles.pushStatusGrid}>
-                      <div className={styles.pushStatusItem}>
-                        <span className={styles.pushStatusLabel}>Browser-Erlaubnis</span>
-                        <strong>{pushPermission === 'granted' ? 'Erteilt' : pushPermission === 'denied' ? 'Blockiert' : 'Offen'}</strong>
-                      </div>
-                      <div className={styles.pushStatusItem}>
-                        <span className={styles.pushStatusLabel}>Gerät verbunden</span>
-                        <strong>{pushConnected ? 'Ja' : 'Nein'}</strong>
-                      </div>
-                      <div className={styles.pushStatusItem}>
-                        <span className={styles.pushStatusLabel}>Server bereit</span>
-                        <strong>{serverConfigured ? 'Ja' : 'Nein'}</strong>
-                      </div>
-                      <div className={styles.pushStatusItem}>
-                        <span className={styles.pushStatusLabel}>Gespeicherte Endpunkte</span>
-                        <strong>{serverSubscriptionCount}</strong>
-                      </div>
-                    </div>
-
-                    {pushPermission === 'granted' && !pushConnected ? (
-                      <div className={styles.pushHint}>
-                        Wenn du iPhone oder iPad nutzt, muss die App über den Home-Bildschirm geöffnet werden. In einem normalen Safari-Tab kommen Web-Pushes dort nicht an.
-                      </div>
-                    ) : null}
                     {pushMessage ? (
                       <div className={styles.feedbackSuccess} style={{ marginTop: 16, marginBottom: 0 }}>
                         {pushMessage}
@@ -409,11 +373,11 @@ export default function ProfilPage() {
                         {pushError}
                       </div>
                     ) : null}
-                  </div>
+                  </>
+                ) : null}
+              </div>
 
-                  <div className={styles.separator} />
-                </>
-              )}
+              <div className={styles.separator} />
 
               <div className={styles.actionList}>
                 <button className={`${styles.actionBtn} ${styles.actionWarn}`} onClick={() => setShowConfirmClear(true)}>
@@ -487,7 +451,7 @@ export default function ProfilPage() {
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="btn btn-secondary btn-full" onClick={() => setShowConfirmClear(false)}>Abbrechen</button>
-              <button className="btn btn-full" style={{ background: 'var(--error)', color: 'white' }} onClick={handleClearAll}>Ja, zurücksetzen</button>
+              <button className="btn btn-danger btn-full" onClick={handleClearAll}>Ja, zurücksetzen</button>
             </div>
           </div>
         </div>
@@ -503,7 +467,7 @@ export default function ProfilPage() {
             </p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="btn btn-secondary btn-full" onClick={() => setShowDeleteModal(false)} disabled={deletingAccount}>Abbrechen</button>
-              <button className="btn btn-full" style={{ background: 'var(--error)', color: 'white' }} onClick={handleDeleteAccount} disabled={deletingAccount}>
+              <button className="btn btn-danger btn-full" onClick={handleDeleteAccount} disabled={deletingAccount}>
                 {deletingAccount ? 'Löscht...' : 'Ja, Account löschen'}
               </button>
             </div>

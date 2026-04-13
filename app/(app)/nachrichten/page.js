@@ -144,15 +144,6 @@ export default function NachrichtenPage() {
       </div>
 
       <div className={styles.discoveryCard}>
-        <div className={styles.discoveryHeader}>
-          <div>
-            <h2 className={styles.discoveryTitle}>Benutzername finden</h2>
-            <p className={styles.discoveryText}>
-              Suche direkt nach @Benutzernamen und starte dann den Chat in der App.
-            </p>
-          </div>
-        </div>
-
         <div className={styles.searchBar}>
           <SearchIcon size={16} strokeWidth={2.5} />
           <input
@@ -160,8 +151,9 @@ export default function NachrichtenPage() {
             className={styles.searchInput}
             value={searchUsername}
             onChange={(event) => setSearchUsername(event.target.value)}
-            placeholder="@benutzername suchen..."
+            placeholder="Benutzername finden"
             id="chat-username-search"
+            aria-label="Benutzername finden"
           />
           {searchUsername && (
             <button
@@ -177,13 +169,11 @@ export default function NachrichtenPage() {
         {searchUsername && (
           <div className={styles.searchResults}>
             {searchLoading ? (
-              <div className={styles.searchInfo}>Benutzernamen werden gesucht...</div>
+              <div className={styles.searchInfo}>Suche...</div>
             ) : searchError ? (
               <div className={styles.searchInfo}>{searchError}</div>
             ) : searchResults.length === 0 ? (
-              <div className={styles.searchInfo}>
-                Kein Benutzername gefunden. Lass dir am besten den Profil-Link oder QR-Code schicken.
-              </div>
+              <div className={styles.searchInfo}>Kein Benutzername gefunden.</div>
             ) : (
               searchResults.map((entry) => (
                 <button

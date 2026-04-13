@@ -6,12 +6,20 @@ import { ALBUM_CONFIG, getCategoryForSticker, useStickers } from '@/lib/stickers
 import styles from './StickerGrid.module.css'
 
 export default function StickerGrid() {
-  const { stickers, incrementSticker, decrementSticker, bulkAdd, bulkRemove, setQuantity } = useStickers()
+  const {
+    stickers,
+    incrementSticker,
+    decrementSticker,
+    bulkAdd,
+    bulkRemove,
+    setQuantity,
+    undoAction,
+    undoLastStickerChange,
+  } = useStickers()
   const [activeCategory, setActiveCategory] = useState('all')
   const [quickInput, setQuickInput] = useState('')
   const [showQuickInput, setShowQuickInput] = useState(false)
   const [mode, setMode] = useState('add') // 'add' or 'remove'
-  const [toast, setToast] = useState(null)
   const [selectedSticker, setSelectedSticker] = useState(null)
   const longPressTimer = useRef(null)
   const longPressTriggered = useRef(false)
@@ -51,12 +59,6 @@ export default function StickerGrid() {
     return Array.from({ length: cat.range[1] - cat.range[0] + 1 }, (_, i) => cat.range[0] + i)
   }
 
-  // Show a brief toast
-  const showToast = useCallback((msg) => {
-    setToast(msg)
-    setTimeout(() => setToast(null), 2000)
-  }, [])
-
   const handleQuickInputSubmit = useCallback(() => {
     if (!quickInput.trim()) return
     const numbers = []
@@ -75,19 +77,18 @@ export default function StickerGrid() {
       }
     })
     if (numbers.length > 0) {
+      const label = mode === 'remove'
+        ? `${numbers.length} Sticker entfernt`
+        : `${numbers.length} Sticker hinzugefügt`
+
       if (mode === 'remove') {
-        bulkRemove(numbers)
+        bulkRemove(numbers, label)
       } else {
-        bulkAdd(numbers)
+        bulkAdd(numbers, label)
       }
       setQuickInput('')
-      showToast(
-        mode === 'remove'
-          ? `${numbers.length} Sticker entfernt!`
-          : `${numbers.length} Sticker hinzugefügt!`
-      )
     }
-  }, [bulkAdd, bulkRemove, mode, quickInput, showToast])
+  }, [bulkAdd, bulkRemove, mode, quickInput])
 
   // Tap handler — depends on mode
   const handleTap = (num) => {
@@ -317,9 +318,14 @@ export default function StickerGrid() {
       </div>
 
       {/* Toast */}
-      {toast && (
-        <div className={styles.toast}>{toast}</div>
-      )}
+      {undoAction ? (
+        <div className={styles.toast}>
+          <span>{undoAction.label}</span>
+          <button type="button" onClick={undoLastStickerChange}>
+            Rückgängig
+          </button>
+        </div>
+      ) : null}
 
       {/* Sticker Detail Popup (long press) */}
       {selectedSticker !== null && (
@@ -363,9 +369,8 @@ export default function StickerGrid() {
                 <button
                   className={`${styles.popupActionBtn} ${styles.popupRemove}`}
                   onClick={() => {
-                    setQuantity(selectedSticker, 0)
+                    setQuantity(selectedSticker, 0, `Sticker #${selectedSticker} komplett entfernt`)
                     setSelectedSticker(null)
-                    showToast(`Sticker #${selectedSticker} entfernt`)
                   }}
                 >
                   Komplett entfernen

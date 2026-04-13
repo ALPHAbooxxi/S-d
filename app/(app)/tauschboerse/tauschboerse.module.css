@@ -21,6 +21,10 @@
 .subtitle { font-size: 0.82rem; color: var(--text-muted); margin-top: 2px; }
 
 .syncInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 14px 16px;
   border-radius: var(--radius-lg);
   background: linear-gradient(180deg, #fffef7 0%, #ffffff 100%);
@@ -28,6 +32,18 @@
   color: var(--text-secondary);
   font-size: 0.82rem;
   line-height: 1.5;
+}
+
+.syncInfo button {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  background: var(--svd-yellow-50);
+  border: 1px solid var(--svd-yellow-200);
+  color: var(--svd-dark-700);
+  font-size: 0.76rem;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .discoveryCard {
@@ -372,21 +388,38 @@
 
 /* Match actions */
 .matchActions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   padding-top: 8px;
   border-top: 1px solid var(--border-light);
-  flex-wrap: wrap;
 }
 
-.contactBadge {
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  font-weight: 500;
-  margin-right: auto;
-  line-height: 1.4;
+.matchActionButton {
+  min-height: 42px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+}
+
+.matchActionChat {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(17, 17, 19, 0.1);
+  color: var(--text-secondary);
+}
+
+.matchActionOffer {
+  background: var(--svd-dark-700);
+  border: 1px solid var(--svd-dark-700);
+  color: var(--svd-yellow-500);
+}
+
+.matchActionButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Number lists */
@@ -580,11 +613,10 @@
 }
 
 .sheetActions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  padding-top: 4px;
-  position: sticky;
-  bottom: 0;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0), var(--bg-secondary) 40%);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
 }

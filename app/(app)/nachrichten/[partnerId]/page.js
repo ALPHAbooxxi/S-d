@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { ChatIcon } from '@/components/AppIcons'
 import { useAuth } from '@/lib/auth-context'
@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client'
 import { cacheDiscoveredUser, loadUserDirectory, loadUserProfile } from '@/lib/matching'
 import { useTrades } from '@/lib/trades-context'
 import { useStickers } from '@/lib/stickers-context'
+import { CHAT_SOUNDS_CHANGE_EVENT, CHAT_SOUNDS_STORAGE_KEY, getChatSoundsEnabled } from '@/lib/chat-sound-settings'
 import styles from '../nachrichten.module.css'
 
 function tradeStatusLabel(status) {
@@ -15,6 +16,13 @@ function tradeStatusLabel(status) {
   if (status === 'declined') return 'Abgelehnt'
   if (status === 'completed') return 'Erledigt'
   return 'Offen'
+}
+
+function tradeStatusClass(status) {
+  if (status === 'accepted') return styles.statusAccepted
+  if (status === 'declined') return styles.statusDeclined
+  if (status === 'completed') return styles.statusCompleted
+  return styles.statusPending
 }
 
 function parseStickerList(value) {
@@ -51,7 +59,12 @@ function ChatDetailContent() {
     refreshTrades,
     createCounterOffer,
   } = useTrades()
-  const { bulkAdd, bulkRemove, setQuantity, incrementSticker, decrementSticker, stickers } = useStickers()
+  const {
+    applyStickerTransfer,
+    stickers,
+    undoAction,
+    undoLastStickerChange,
+  } = useStickers()
   const [draft, setDraft] = useState('')
   const [tradeNote, setTradeNote] = useState('')
   const [deleteError, setDeleteError] = useState('')
@@ -62,6 +75,7 @@ function ChatDetailContent() {
   const [messageError, setMessageError] = useState('')
   const [tradeError, setTradeError] = useState('')
   const [toastMessage, setToastMessage] = useState(null)
+  const [appliedTradeIds, setAppliedTradeIds] = useState(new Set())
   
   // Counter Offer State
   const [counterOfferTradeId, setCounterOfferTradeId] = useState(null)
@@ -82,6 +96,9 @@ function ChatDetailContent() {
   const threadTrades = getTradesWithPartner(partnerId)
   const messageListRef = useRef(null)
   const messageEndRef = useRef(null)
+  const audioContextRef = useRef(null)
+  const messageSoundRef = useRef({ partnerId: null, lastMessageId: null })
+  const chatSoundsEnabledRef = useRef(true)
   const tradeDraft = useMemo(() => {
     const suggestedGive = parseStickerList(searchParams.get('give'))
     const suggestedWant = parseStickerList(searchParams.get('want'))
@@ -96,17 +113,240 @@ function ChatDetailContent() {
       want: suggestedWant,
     }
   }, [searchParams])
+  const ownDuplicateStickerNumbers = useMemo(() => (
+    Object.keys(stickers)
+      .filter((number) => stickers[number] > 1)
+      .map(Number)
+      .sort((a, b) => a - b)
+  ), [stickers])
+  const counterGiveOptions = useMemo(() => (
+    [...new Set([...counterGive, ...ownDuplicateStickerNumbers])].sort((a, b) => a - b)
+  ), [counterGive, ownDuplicateStickerNumbers])
+  const counterWantOptions = useMemo(() => (
+    [...new Set(counterWant)].sort((a, b) => a - b)
+  ), [counterWant])
 
   const showToast = (msg) => {
     setToastMessage(msg)
     setTimeout(() => setToastMessage(null), 3000)
   }
 
+  const getAudioContext = useCallback(() => {
+    if (typeof window === 'undefined') return null
+
+    const AudioContextConstructor = window.AudioContext || window.webkitAudioContext
+    if (!AudioContextConstructor) return null
+
+    if (!audioContextRef.current) {
+      audioContextRef.current = new AudioContextConstructor()
+    }
+
+    return audioContextRef.current
+  }, [])
+
+  const playChatSound = useCallback((variant) => {
+    try {
+      if (!chatSoundsEnabledRef.current) return
+
+      const context = getAudioContext()
+      if (!context) return
+
+      if (context.state === 'suspended') {
+        void context.resume()
+      }
+
+      const now = context.currentTime
+      const tones = variant === 'receive'
+        ? [
+            { frequency: 880, start: 0, duration: 0.055, gain: 0.035 },
+            { frequency: 1175, start: 0.055, duration: 0.075, gain: 0.028 },
+          ]
+        : [
+            { frequency: 660, start: 0, duration: 0.045, gain: 0.03 },
+            { frequency: 880, start: 0.045, duration: 0.06, gain: 0.024 },
+          ]
+
+      tones.forEach((tone) => {
+        const oscillator = context.createOscillator()
+        const gain = context.createGain()
+        const startsAt = now + tone.start
+        const endsAt = startsAt + tone.duration
+
+        oscillator.type = 'sine'
+        oscillator.frequency.setValueAtTime(tone.frequency, startsAt)
+        gain.gain.setValueAtTime(0.0001, startsAt)
+        gain.gain.exponentialRampToValueAtTime(tone.gain, startsAt + 0.01)
+        gain.gain.exponentialRampToValueAtTime(0.0001, endsAt)
+
+        oscillator.connect(gain)
+        gain.connect(context.destination)
+        oscillator.start(startsAt)
+        oscillator.stop(endsAt + 0.02)
+      })
+    } catch {
+      // Browser audio should never block chat usage.
+    }
+  }, [getAudioContext])
+
+  const persistAppliedTradeIds = (updater) => {
+    setAppliedTradeIds((current) => {
+      const next = updater(new Set(current))
+
+      if (user?.id) {
+        localStorage.setItem(
+          `svd_trade_collection_applied_${user.id}`,
+          JSON.stringify(Array.from(next))
+        )
+      }
+
+      return next
+    })
+  }
+
+  const markTradeCollectionApplied = (tradeId) => {
+    persistAppliedTradeIds((next) => {
+      next.add(tradeId)
+      return next
+    })
+
+    if (user?.id) {
+      void supabase
+        .from('trade_collection_applications')
+        .upsert(
+          { user_id: user.id, trade_request_id: tradeId },
+          { onConflict: 'user_id,trade_request_id' }
+        )
+    }
+  }
+
+  const unmarkTradeCollectionApplied = (tradeId) => {
+    persistAppliedTradeIds((next) => {
+      next.delete(tradeId)
+      return next
+    })
+
+    if (user?.id) {
+      void supabase
+        .from('trade_collection_applications')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('trade_request_id', tradeId)
+    }
+  }
+
+  useEffect(() => {
+    let active = true
+
+    if (!user?.id) {
+      setAppliedTradeIds(new Set())
+      return () => {
+        active = false
+      }
+    }
+
+    try {
+      const stored = JSON.parse(localStorage.getItem(`svd_trade_collection_applied_${user.id}`) || '[]')
+      setAppliedTradeIds(new Set(Array.isArray(stored) ? stored : []))
+    } catch {
+      setAppliedTradeIds(new Set())
+    }
+
+    async function loadRemoteAppliedTrades() {
+      const { data, error } = await supabase
+        .from('trade_collection_applications')
+        .select('trade_request_id')
+        .eq('user_id', user.id)
+
+      if (!active || error) return
+
+      const remoteIds = (data || []).map((entry) => entry.trade_request_id)
+      setAppliedTradeIds(new Set(remoteIds))
+      localStorage.setItem(
+        `svd_trade_collection_applied_${user.id}`,
+        JSON.stringify(remoteIds)
+      )
+    }
+
+    void loadRemoteAppliedTrades()
+
+    return () => {
+      active = false
+    }
+  }, [supabase, user?.id])
+
   useEffect(() => {
     if (partnerId) {
       void markAsRead(partnerId)
     }
   }, [markAsRead, partnerId])
+
+  useEffect(() => {
+    const syncChatSoundSetting = (event) => {
+      chatSoundsEnabledRef.current = typeof event?.detail?.enabled === 'boolean'
+        ? event.detail.enabled
+        : getChatSoundsEnabled()
+    }
+
+    syncChatSoundSetting()
+
+    const handleStorageChange = (event) => {
+      if (event.key === CHAT_SOUNDS_STORAGE_KEY) {
+        syncChatSoundSetting()
+      }
+    }
+
+    window.addEventListener(CHAT_SOUNDS_CHANGE_EVENT, syncChatSoundSetting)
+    window.addEventListener('storage', handleStorageChange)
+
+    return () => {
+      window.removeEventListener(CHAT_SOUNDS_CHANGE_EVENT, syncChatSoundSetting)
+      window.removeEventListener('storage', handleStorageChange)
+    }
+  }, [])
+
+  useEffect(() => {
+    const unlockAudio = () => {
+      if (!chatSoundsEnabledRef.current) return
+
+      const context = getAudioContext()
+      if (context?.state === 'suspended') {
+        void context.resume()
+      }
+    }
+
+    window.addEventListener('pointerdown', unlockAudio, { once: true })
+    window.addEventListener('keydown', unlockAudio, { once: true })
+
+    return () => {
+      window.removeEventListener('pointerdown', unlockAudio)
+      window.removeEventListener('keydown', unlockAudio)
+    }
+  }, [getAudioContext])
+
+  useEffect(() => {
+    const latestMessage = threadMessages.at(-1)
+    const previousSoundState = messageSoundRef.current
+
+    if (!latestMessage) {
+      messageSoundRef.current = { partnerId, lastMessageId: null }
+      return
+    }
+
+    if (previousSoundState.partnerId !== partnerId) {
+      messageSoundRef.current = { partnerId, lastMessageId: latestMessage.id }
+      return
+    }
+
+    if (
+      previousSoundState.lastMessageId &&
+      latestMessage.id !== previousSoundState.lastMessageId &&
+      latestMessage.senderId !== user?.id
+    ) {
+      playChatSound('receive')
+    }
+
+    messageSoundRef.current = { partnerId, lastMessageId: latestMessage.id }
+  }, [partnerId, playChatSound, threadMessages, user?.id])
 
   useEffect(() => {
     let active = true
@@ -159,6 +399,7 @@ function ChatDetailContent() {
         content: nextDraft,
         tradeId: threadTrades[0]?.id || null,
       })
+      playChatSound('send')
       setLastFailedDraft(null)
       setDraft('')
     } catch (error) {
@@ -181,6 +422,7 @@ function ChatDetailContent() {
 
     try {
       await sendMessage(lastFailedDraft)
+      playChatSound('send')
       setLastFailedDraft(null)
       setDraft('')
     } catch (error) {
@@ -237,17 +479,23 @@ function ChatDetailContent() {
     }
   }
 
-  const handleCompleteTrade = async (tradeId, stickersYouGet, stickersYouGive) => {
+  const handleApplyTradeToCollection = async (trade, stickersYouGet, stickersYouGive) => {
     try {
-      await updateTradeStatus(tradeId, 'completed')
-      
-      // Auto-update stickers
-      bulkAdd(stickersYouGet)
-      bulkRemove(stickersYouGive)
-      
-      showToast('Tausch abgeschlossen! Sticker wurden aktualisiert.')
+      if (trade.status !== 'completed') {
+        await updateTradeStatus(trade.id, 'completed')
+      }
+
+      markTradeCollectionApplied(trade.id)
+      applyStickerTransfer(
+        stickersYouGet,
+        stickersYouGive,
+        'Tausch in deiner Sammlung eingetragen',
+        {
+          onUndo: () => unmarkTradeCollectionApplied(trade.id),
+        }
+      )
     } catch (error) {
-      setMessageError(error.message || 'Fehler beim Abschliessen des Tauschs.')
+      setMessageError(error.message || 'Fehler beim Eintragen in deine Sammlung.')
     }
   }
 
@@ -347,13 +595,13 @@ function ChatDetailContent() {
                 <span className="badge badge-dark">Vorschlag</span>
               </div>
               <div className={styles.tradeGrid}>
-                <div>
-                  <span className={styles.tradeLabel}>Du gibst</span>
-                  <p>{formatStickerList(tradeDraft.give)}</p>
-                </div>
-                <div>
+                <div className={`${styles.tradeSide} ${styles.tradeReceive}`}>
                   <span className={styles.tradeLabel}>Du bekommst</span>
                   <p>{formatStickerList(tradeDraft.want)}</p>
+                </div>
+                <div className={`${styles.tradeSide} ${styles.tradeGive}`}>
+                  <span className={styles.tradeLabel}>Du gibst</span>
+                  <p>{formatStickerList(tradeDraft.give)}</p>
                 </div>
               </div>
               <div className="input-group">
@@ -371,10 +619,10 @@ function ChatDetailContent() {
                 <div className={styles.inlineError}>{tradeError}</div>
               ) : null}
               <div className={styles.tradeActions}>
-                <button className="btn btn-secondary btn-sm" onClick={handleDismissTradeDraft} disabled={sendingTrade}>
+                <button className={`${styles.tradeActionButton} ${styles.tradeActionNeutral}`} onClick={handleDismissTradeDraft} disabled={sendingTrade}>
                   Verwerfen
                 </button>
-                <button className="btn btn-primary btn-sm" onClick={handleSendTradeDraft} disabled={sendingTrade}>
+                <button className={`${styles.tradeActionButton} ${styles.tradeActionSend}`} onClick={handleSendTradeDraft} disabled={sendingTrade}>
                   {sendingTrade ? 'Sendet...' : 'Anfrage senden'}
                 </button>
               </div>
@@ -386,7 +634,10 @@ function ChatDetailContent() {
               {threadTrades.map((trade) => {
                 const isIncoming = trade.receiverId === user?.id
                 const canRespond = isIncoming && trade.status === 'pending'
-                const canComplete = trade.status === 'accepted'
+                const collectionApplied = appliedTradeIds.has(trade.id)
+                const canApplyToCollection =
+                  (trade.status === 'accepted' || trade.status === 'completed') &&
+                  !collectionApplied
                 const stickersYouGive = isIncoming ? trade.wantedStickers : trade.offeredStickers
                 const stickersYouGet = isIncoming ? trade.offeredStickers : trade.wantedStickers
 
@@ -394,18 +645,18 @@ function ChatDetailContent() {
                   <div key={trade.id} className={styles.tradeCard}>
                     <div className={styles.tradeTop}>
                       <strong>Tauschanfrage</strong>
-                      <span className={`badge ${trade.status === 'accepted' ? 'badge-success' : trade.status === 'declined' ? 'badge-error' : trade.status === 'completed' ? 'badge-success' : 'badge-dark'}`}>
+                      <span className={`${styles.tradeStatusBadge} ${tradeStatusClass(trade.status)}`}>
                         {tradeStatusLabel(trade.status)}
                       </span>
                     </div>
                     <div className={styles.tradeGrid}>
-                      <div>
-                        <span className={styles.tradeLabel}>Du gibst</span>
-                        <p>{formatStickerList(stickersYouGive)}</p>
-                      </div>
-                      <div>
+                      <div className={`${styles.tradeSide} ${styles.tradeReceive}`}>
                         <span className={styles.tradeLabel}>Du bekommst</span>
                         <p>{formatStickerList(stickersYouGet)}</p>
+                      </div>
+                      <div className={`${styles.tradeSide} ${styles.tradeGive}`}>
+                        <span className={styles.tradeLabel}>Du gibst</span>
+                        <p>{formatStickerList(stickersYouGive)}</p>
                       </div>
                     </div>
 
@@ -415,25 +666,31 @@ function ChatDetailContent() {
 
                     {canRespond && (
                       <div className={styles.tradeActions}>
-                        <button className="btn btn-secondary btn-sm" onClick={() => updateTradeStatus(trade.id, 'declined')}>
-                          Ablehnen
+                        <button className={`${styles.tradeActionButton} ${styles.tradeActionAccept}`} onClick={() => updateTradeStatus(trade.id, 'accepted')}>
+                          Ja, annehmen
                         </button>
-                        <button className="btn btn-primary btn-sm" onClick={() => updateTradeStatus(trade.id, 'accepted')}>
-                          Annehmen
-                        </button>
-                        <button className="btn btn-outline-yellow btn-sm" onClick={() => handleOpenCounterOffer(trade)}>
+                        <button className={`${styles.tradeActionButton} ${styles.tradeActionCounter}`} onClick={() => handleOpenCounterOffer(trade)}>
                           Gegenangebot
+                        </button>
+                        <button className={`${styles.tradeActionButton} ${styles.tradeActionDecline}`} onClick={() => updateTradeStatus(trade.id, 'declined')}>
+                          Nein, ablehnen
                         </button>
                       </div>
                     )}
 
-                    {!canRespond && canComplete && (
+                    {!canRespond && canApplyToCollection && (
                       <div className={styles.tradeActions}>
-                        <button className="btn btn-dark btn-sm" onClick={() => handleCompleteTrade(trade.id, stickersYouGet, stickersYouGive)}>
-                          Als erledigt markieren
+                        <button className={`${styles.tradeActionButton} ${styles.tradeActionComplete}`} onClick={() => handleApplyTradeToCollection(trade, stickersYouGet, stickersYouGive)}>
+                          In meine Sammlung eintragen
                         </button>
                       </div>
                     )}
+
+                    {collectionApplied ? (
+                      <div className={styles.tradeAppliedNote}>
+                        In deiner Sammlung eingetragen
+                      </div>
+                    ) : null}
                   </div>
                 )
               })}
@@ -485,9 +742,9 @@ function ChatDetailContent() {
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
                 placeholder="Nachricht schreiben..."
-                rows={3}
+                rows={1}
               />
-              <button className="btn btn-primary" type="submit" disabled={sendingMessage || !draft.trim()}>
+              <button className="btn btn-primary btn-sm" type="submit" disabled={sendingMessage || !draft.trim()}>
                 {sendingMessage ? 'Sendet...' : 'Senden'}
               </button>
             </form>
@@ -507,7 +764,7 @@ function ChatDetailContent() {
               <button className="btn btn-secondary btn-full" onClick={() => setShowDeleteModal(false)} disabled={deletingConversation}>
                 Abbrechen
               </button>
-              <button className="btn btn-full" style={{ background: 'var(--error)', color: 'white' }} onClick={handleDeleteConversation} disabled={deletingConversation}>
+              <button className="btn btn-danger btn-full" onClick={handleDeleteConversation} disabled={deletingConversation}>
                 {deletingConversation ? 'Löscht...' : 'Ja, Chat löschen'}
               </button>
             </div>
@@ -527,7 +784,7 @@ function ChatDetailContent() {
             <div className={styles.counterSection}>
               <span className={styles.tradeLabel}>Du gibst</span>
               <div className={styles.counterChips}>
-                {[...new Set([...counterGive, ...partner?.stickers ? Object.keys(partner.stickers).filter(k => !stickers[k]).map(Number) : []])].sort((a,b)=>a-b).map(num => (
+                {counterGiveOptions.length > 0 ? counterGiveOptions.map(num => (
                    <button 
                      key={`give-${num}`}
                      className={`${styles.counterChip} ${counterGive.includes(num) ? styles.counterChipSelected : ''}`}
@@ -535,14 +792,16 @@ function ChatDetailContent() {
                    >
                      #{num}
                    </button>
-                ))}
+                )) : (
+                  <span className={styles.counterEmpty}>Keine doppelten Sticker gefunden.</span>
+                )}
               </div>
             </div>
 
             <div className={styles.counterSection} style={{ marginTop: 16 }}>
               <span className={styles.tradeLabel}>Du bekommst</span>
               <div className={styles.counterChips}>
-                {[...new Set([...counterWant, ...Object.keys(stickers).filter(k => stickers[k] > 1).map(Number)])].sort((a,b)=>a-b).map(num => (
+                {counterWantOptions.length > 0 ? counterWantOptions.map(num => (
                    <button 
                      key={`want-${num}`}
                      className={`${styles.counterChip} ${counterWant.includes(num) ? styles.counterChipSelected : ''}`}
@@ -550,7 +809,9 @@ function ChatDetailContent() {
                    >
                      #{num}
                    </button>
-                ))}
+                )) : (
+                  <span className={styles.counterEmpty}>Noch keine Sticker ausgewählt.</span>
+                )}
               </div>
             </div>
 
@@ -578,7 +839,14 @@ function ChatDetailContent() {
         </div>
       )}
 
-      {toastMessage && (
+      {undoAction ? (
+        <div className={styles.undoToast}>
+          <span>{undoAction.label}</span>
+          <button type="button" onClick={undoLastStickerChange}>
+            Rückgängig
+          </button>
+        </div>
+      ) : toastMessage && (
         <div className="toast toast-success">{toastMessage}</div>
       )}
     </div>

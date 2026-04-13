@@ -114,13 +114,15 @@ export default function TauschboersePage() {
             Automatische Match-Vorschlaege auf Basis deiner doppelten und fehlenden Sticker.
           </p>
         </div>
-        <button className="btn btn-secondary btn-sm" onClick={refreshDirectory} disabled={directoryLoading}>
-          {directoryLoading ? 'Aktualisiert...' : 'Aktualisieren'}
-        </button>
       </div>
 
       {directoryError ? (
-        <div className={styles.syncInfo}>{directoryError}</div>
+        <div className={styles.syncInfo}>
+          <span>{directoryError}</span>
+          <button type="button" onClick={refreshDirectory} disabled={directoryLoading}>
+            {directoryLoading ? 'Lädt...' : 'Neu versuchen'}
+          </button>
+        </div>
       ) : null}
 
       {!hasStickers ? (
@@ -264,14 +266,13 @@ export default function TauschboersePage() {
                     </div>
 
                     <div className={styles.matchActions}>
-                      <span className={styles.contactBadge}>Tippe auf die Karte und wähle genau aus, was du tauschen möchtest.</span>
-                      <button className="btn btn-secondary btn-sm" onClick={(event) => {
+                      <button className={`${styles.matchActionButton} ${styles.matchActionChat}`} onClick={(event) => {
                         event.stopPropagation()
                         handleOpenConversation(match.userId)
                       }}>
                         Chat öffnen
                       </button>
-                      <button className="btn btn-dark btn-sm" id={`trade-${match.userId}`} onClick={(event) => {
+                      <button className={`${styles.matchActionButton} ${styles.matchActionOffer}`} id={`trade-${match.userId}`} onClick={(event) => {
                         event.stopPropagation()
                         openMatchDetails(match)
                       }}>
@@ -397,11 +398,14 @@ export default function TauschboersePage() {
             </div>
 
             <div className={styles.sheetActions}>
-              <button className="btn btn-secondary btn-sm" onClick={() => handleOpenConversation(selectedMatch.userId)}>
+              <button
+                className={`${styles.matchActionButton} ${styles.matchActionChat}`}
+                onClick={() => handleOpenConversation(selectedMatch.userId)}
+              >
                 Chat öffnen
               </button>
               <button
-                className="btn btn-primary btn-sm"
+                className={`${styles.matchActionButton} ${styles.matchActionOffer}`}
                 onClick={() => handlePrepareTrade(selectedMatch, { give: selectedGive, want: selectedWant })}
                 disabled={!selectedTradeReady}
               >

@@ -1,8 +1,8 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 18px;
+  gap: 18px;
+  padding: 20px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
@@ -13,7 +13,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 14px;
+  gap: 18px;
+  flex-wrap: wrap;
 }
 
 .eyebrow {
@@ -36,10 +37,10 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
+  padding: 8px 11px;
   border-radius: 999px;
   background: var(--svd-yellow-50);
-  border: 1px solid var(--svd-yellow-200);
+  border: 1px solid rgba(234, 200, 1, 0.22);
   color: var(--svd-dark-700);
   font-size: 0.78rem;
   font-weight: 800;
@@ -49,40 +50,41 @@
 .groupList {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .summaryGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .summaryCard {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px;
+  gap: 14px;
+  min-height: 112px;
+  padding: 16px;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border-light);
+  border: 1px solid rgba(17, 17, 19, 0.08);
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--svd-yellow-50) 50%, white 50%), transparent 65%),
-    var(--bg-tertiary);
+    linear-gradient(135deg, rgba(234, 200, 1, 0.08), transparent 68%),
+    var(--gray-50);
   cursor: pointer;
   text-align: left;
-  color: inherit;
-  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  color: var(--text-primary);
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
 .summaryCard:hover {
-  transform: translateY(-1px);
+  background: var(--svd-yellow-50);
   border-color: var(--svd-yellow-300);
-  box-shadow: var(--shadow-sm);
 }
 
 .summaryCardActive {
   border-color: var(--svd-yellow-400);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--svd-yellow-400) 35%, transparent 65%);
+  background: var(--svd-yellow-50);
+  box-shadow: 0 0 0 1px rgba(234, 200, 1, 0.18);
 }
 
 .progressDonut {
@@ -129,9 +131,9 @@
 }
 
 .summaryTitle {
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 900;
-  line-height: 1.2;
+  line-height: 1.35;
   color: var(--text-primary);
 }
 
@@ -159,15 +161,15 @@
 .summaryMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 10px;
+  gap: 7px 12px;
   font-size: 0.74rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .groupCard {
-  border: 1px solid var(--border-light);
+  border: 1px solid rgba(17, 17, 19, 0.08);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--bg-secondary) 80%, white 20%);
+  background: var(--bg-secondary);
   overflow: hidden;
 }
 
@@ -176,13 +178,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 14px 16px;
+  gap: 16px;
+  padding: 16px;
   background: transparent;
   border: 0;
   cursor: pointer;
   text-align: left;
-  color: inherit;
+  color: var(--text-primary);
 }
 
 .groupMain {
@@ -208,7 +210,7 @@
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
 }
 
@@ -217,15 +219,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 9px;
+  min-height: 30px;
+  padding: 6px 10px;
   border-radius: 999px;
   font-size: 0.74rem;
   font-weight: 800;
 }
 
 .groupMissing {
-  background: var(--gray-100);
+  background: var(--gray-50);
   color: var(--text-secondary);
+  border: 1px solid var(--border-light);
 }
 
 .groupDuplicate {
@@ -238,7 +242,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 0 14px 14px;
+  padding: 0 16px 16px;
   border-top: 1px solid var(--border-light);
 }
 
@@ -246,10 +250,10 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 14px;
+  padding: 16px;
   margin-top: 12px;
   border-radius: var(--radius-md);
-  background: var(--bg-tertiary);
+  background: var(--gray-50);
   border: 1px solid color-mix(in srgb, var(--border-light) 88%, white 12%);
 }
 
@@ -327,9 +331,9 @@
 }
 
 .completeBadge {
-  background: color-mix(in srgb, var(--success-color) 14%, white 86%);
-  border: 1px solid color-mix(in srgb, var(--success-color) 28%, white 72%);
-  color: var(--success-color);
+  background: var(--success-light);
+  border: 1px solid color-mix(in srgb, var(--success) 28%, white 72%);
+  color: var(--success);
 }
 
 .missingBlock {

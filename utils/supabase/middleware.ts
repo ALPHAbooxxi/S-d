@@ -38,5 +38,8 @@ export const createClient = async (request: NextRequest) => {
   // Important for SSR auth persistence: refresh and write cookies on every request.
   await supabase.auth.getUser()
 
+  supabaseResponse.headers.set("Cache-Control", "private, no-store")
+  supabaseResponse.headers.set("Vary", "Cookie")
+
   return supabaseResponse
 };
