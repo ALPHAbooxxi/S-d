@@ -184,32 +184,162 @@
   letter-spacing: 0.04em;
 }
 
-/* Tabs */
-.tabs {
+.matchFilterDropdown {
+  position: relative;
+  z-index: 20;
+}
+
+.matchFilterTrigger {
+  width: 100%;
+  min-height: 62px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--svd-dark-700);
+  background: var(--svd-dark-700);
+  color: var(--svd-yellow-500);
   display: flex;
-  gap: 3px;
-  background: var(--gray-100);
-  padding: 3px;
-  border-radius: var(--radius-md);
-}
-
-.tab {
-  flex: 1;
-  padding: 10px 6px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
-  text-align: center;
-}
-
-.tab:hover { color: var(--text-primary); }
-
-.activeTab {
-  background: var(--bg-secondary);
-  color: var(--svd-dark-700);
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
   box-shadow: var(--shadow-sm);
+}
+
+.matchFilterTrigger:focus-visible {
+  outline: 2px solid var(--svd-yellow-500);
+  outline-offset: 2px;
+}
+
+.matchFilterTriggerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.matchFilterTriggerText small {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.matchFilterTriggerText strong {
+  color: var(--svd-yellow-500);
+  font-size: 0.88rem;
+  font-weight: 900;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matchFilterTriggerText em {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.matchFilterChevron {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--svd-yellow-500);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.matchFilterChevronOpen {
+  transform: rotate(180deg);
+  background: rgba(234, 200, 1, 0.16);
+}
+
+.matchFilterMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(17, 17, 19, 0.12);
+  background: var(--bg-secondary);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.matchFilterOption {
+  width: 100%;
+  min-height: 54px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.matchFilterOption span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.matchFilterOption strong {
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.matchFilterOption small {
+  color: var(--text-muted);
+  font-size: 0.64rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.matchFilterOption:hover {
+  background: var(--gray-50);
+}
+
+.activeMatchFilterOption {
+  background: var(--svd-yellow-50);
+  border: 1px solid var(--svd-yellow-200);
+}
+
+.activeMatchFilterOption strong {
+  color: var(--svd-dark-700);
+}
+
+.activeMatchFilterOption small {
+  color: var(--svd-dark-500);
+}
+
+.matchFilterCheck {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--svd-dark-700);
+  color: var(--svd-yellow-500);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 900;
+  flex-shrink: 0;
 }
 
 /* Match List */
@@ -365,20 +495,6 @@
   border: 1px solid #FDE68A;
 }
 
-.chipMissing {
-  background: var(--gray-50);
-  color: var(--gray-600);
-  border: 1px solid var(--gray-200);
-}
-
-.chipDuplicate {
-  background: var(--svd-yellow-500);
-  color: var(--svd-dark-900);
-  border: 1px solid var(--svd-yellow-600);
-}
-
-.chipDuplicate small { opacity: 0.65; margin-left: 2px; }
-
 .chipMore {
   padding: 3px 7px;
   font-size: 0.68rem;
@@ -420,27 +536,6 @@
 .matchActionButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-/* Number lists */
-.numberList {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-light);
-  padding: 18px 16px;
-}
-
-.listInfo {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  margin-bottom: 14px;
-  font-weight: 500;
-}
-
-.numberChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
 }
 
 .matchSheet {

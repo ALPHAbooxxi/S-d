@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo, useRef } from 'react'
 import { CheckIcon } from '@/components/AppIcons'
+import SwipeableModal from '@/components/SwipeableModal'
 import { ALBUM_CONFIG, getCategoryForSticker, useStickers } from '@/lib/stickers-context'
 import styles from './StickerGrid.module.css'
 
@@ -329,9 +330,7 @@ export default function StickerGrid() {
 
       {/* Sticker Detail Popup (long press) */}
       {selectedSticker !== null && (
-        <div className={styles.popupOverlay} onClick={() => setSelectedSticker(null)}>
-          <div className={styles.popupCard} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.popupHandle} />
+        <SwipeableModal onClose={() => setSelectedSticker(null)} contentClassName={styles.popupCard}>
             <div className={styles.popupHeader}>
               <span className={styles.popupNumber}>#{selectedSticker}</span>
               <span className={styles.popupCategory}>
@@ -383,8 +382,7 @@ export default function StickerGrid() {
                 Fertig
               </button>
             </div>
-          </div>
-        </div>
+        </SwipeableModal>
       )}
     </div>
   )

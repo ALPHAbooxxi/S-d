@@ -11,6 +11,7 @@ import { getChatSoundsEnabled, saveChatSoundsEnabled } from '@/lib/chat-sound-se
 import { BellIcon, CheckIcon } from '@/components/AppIcons'
 import ProgressRing from '@/components/ProgressRing'
 import ProfileShareCard from '@/components/ProfileShareCard'
+import SwipeableModal from '@/components/SwipeableModal'
 import styles from './profil.module.css'
 
 export default function ProfilPage() {
@@ -442,9 +443,7 @@ export default function ProfilPage() {
 
       {/* Confirm Clear Modal */}
       {showConfirmClear && (
-        <div className="modal-overlay" onClick={() => setShowConfirmClear(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-handle" />
+        <SwipeableModal onClose={() => setShowConfirmClear(false)}>
             <h3 style={{ marginBottom: 8 }}>Sticker zurücksetzen?</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: 20, lineHeight: 1.5 }}>
               Dies löscht alle eingetragenen Sticker unwiderruflich. Bist du sicher?
@@ -453,14 +452,11 @@ export default function ProfilPage() {
               <button className="btn btn-secondary btn-full" onClick={() => setShowConfirmClear(false)}>Abbrechen</button>
               <button className="btn btn-danger btn-full" onClick={handleClearAll}>Ja, zurücksetzen</button>
             </div>
-          </div>
-        </div>
+        </SwipeableModal>
       )}
 
       {showDeleteModal && (
-        <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-handle" />
+        <SwipeableModal onClose={() => setShowDeleteModal(false)}>
             <h3 style={{ marginBottom: 8 }}>Account löschen?</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: 20, lineHeight: 1.5 }}>
               Dein Profil, deine Stickerdaten und dein Login werden endgültig gelöscht. Dieser Schritt kann nicht rückgängig gemacht werden.
@@ -471,8 +467,7 @@ export default function ProfilPage() {
                 {deletingAccount ? 'Löscht...' : 'Ja, Account löschen'}
               </button>
             </div>
-          </div>
-        </div>
+        </SwipeableModal>
       )}
     </div>
   )

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { usePushNotifications } from '@/lib/use-push-notifications'
+import SwipeableModal from './SwipeableModal'
 import styles from './AppOnboardingPrompt.module.css'
 
 const STORAGE_KEY = 'svd_onboarding_prompt_seen_v1'
@@ -90,10 +91,7 @@ export default function AppOnboardingPrompt() {
   if (!open || !user) return null
 
   return (
-    <div className="modal-overlay" onClick={closePrompt}>
-      <div className="modal-content" onClick={(event) => event.stopPropagation()}>
-        <div className="modal-handle" />
-
+    <SwipeableModal onClose={closePrompt}>
         <div className={styles.hero}>
           <span className={styles.eyebrow}>Schnellstart</span>
           <h2 className={styles.title}>Mach die App startklar</h2>
@@ -160,7 +158,6 @@ export default function AppOnboardingPrompt() {
             Weiter zur App
           </button>
         </div>
-      </div>
-    </div>
+    </SwipeableModal>
   )
 }

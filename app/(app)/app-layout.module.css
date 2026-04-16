@@ -4,6 +4,10 @@
   background: var(--bg-primary);
 }
 
+.appContainer:has([data-presentation-page="true"]) {
+  padding-bottom: 0;
+}
+
 .loadingScreen {
   min-height: 100dvh;
   display: flex;

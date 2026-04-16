@@ -43,7 +43,7 @@ const navItems = [
   },
   {
     href: '/nachrichten',
-    label: 'Nachrichten',
+    label: 'Chat',
     icon: (active) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'var(--svd-yellow-500)' : 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -51,12 +51,13 @@ const navItems = [
     ),
   },
   {
-    href: '/profil',
-    label: 'Profil',
+    href: '/shop',
+    label: 'Shop',
     icon: (active) => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'var(--svd-yellow-500)' : 'currentColor'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-        <circle cx="12" cy="7" r="4" />
+        <path d="M6 8h12l-1 13H7L6 8z" />
+        <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+        <path d="M9 13h6" />
       </svg>
     ),
   },

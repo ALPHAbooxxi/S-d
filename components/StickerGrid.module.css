@@ -524,56 +524,16 @@
   to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 }
 
-/* ===== Detail Popup (Long-Press) ===== */
-.popupOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  z-index: 900;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  animation: fadeIn 200ms ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@media (min-width: 768px) {
-  .popupOverlay { align-items: center; }
-}
-
 .popupCard {
-  background: var(--bg-secondary);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   padding: 16px 20px 24px;
-  width: 100%;
   max-width: 380px;
-  animation: slideUp 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
   padding-bottom: calc(24px + var(--safe-bottom));
 }
 
 @media (min-width: 768px) {
   .popupCard {
-    border-radius: var(--radius-xl);
     padding-bottom: 24px;
   }
-}
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(100%); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.popupHandle {
-  width: 36px;
-  height: 4px;
-  background: var(--gray-300);
-  border-radius: var(--radius-full);
-  margin: 0 auto 16px;
 }
 
 .popupHeader {

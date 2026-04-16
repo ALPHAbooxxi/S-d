@@ -14,6 +14,13 @@
   gap: 6px;
 }
 
+.headerTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
 .title {
   font-size: 1.5rem;
   font-weight: 900;
@@ -23,6 +30,35 @@
   font-size: 0.85rem;
   line-height: 1.55;
   color: var(--text-muted);
+}
+
+.profileLink {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: var(--svd-dark-700);
+  border: 1px solid rgba(17, 17, 19, 0.14);
+  color: var(--svd-yellow-500);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.profileLink:hover {
+  color: var(--svd-yellow-300);
+}
+
+.profileLink:focus-visible {
+  outline: 2px solid var(--svd-yellow-500);
+  outline-offset: 2px;
+}
+
+.profileLink span {
+  font-size: 0.92rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .tabs {

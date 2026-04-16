@@ -35,6 +35,210 @@
   line-height: 1.55;
 }
 
+.overview {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+}
+
+.overviewHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  margin-bottom: 3px;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.totalCount {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--svd-dark-700);
+  color: var(--svd-yellow-500);
+  font-size: 0.7rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.summaryItem {
+  min-height: 72px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: var(--gray-50);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+}
+
+.summaryItem strong {
+  color: var(--svd-dark-700);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.summaryItem span {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.overviewBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.blockToggle {
+  width: 100%;
+  min-height: 54px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: var(--gray-50);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+}
+
+.blockToggle:focus-visible {
+  outline: 2px solid var(--svd-yellow-500);
+  outline-offset: 2px;
+}
+
+.blockToggleText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.blockToggleText strong {
+  color: var(--text-primary);
+  font-size: 0.86rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.blockToggleText small {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.blockToggleRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.blockToggleRight span {
+  min-width: 30px;
+  min-height: 26px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.blockToggleRight svg {
+  color: var(--text-muted);
+  transition: transform var(--transition-fast);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.chipGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.stickerChip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 3px 7px;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.missingChip {
+  background: var(--gray-50);
+  color: var(--gray-600);
+  border: 1px solid var(--gray-200);
+}
+
+.duplicateChip {
+  background: var(--svd-yellow-500);
+  color: var(--svd-dark-900);
+  border: 1px solid var(--svd-yellow-600);
+}
+
+.duplicateChip small {
+  margin-left: 3px;
+  opacity: 0.72;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.emptyText {
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--gray-50);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .gridSection {
   background: var(--bg-secondary);
   padding: 16px;

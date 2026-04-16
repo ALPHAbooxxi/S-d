@@ -5,9 +5,121 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { useStickers } from '@/lib/stickers-context'
 import { ArrowDownIcon, ArrowUpIcon, CloseIcon, CollectionIcon, SearchIcon } from '@/components/AppIcons'
+import SwipeableModal from '@/components/SwipeableModal'
 import { createClient } from '@/lib/supabase/client'
 import { findMatches, loadUserDirectory, syncUserDirectoryFromRemote } from '@/lib/matching'
 import styles from './tauschboerse.module.css'
+
+const MATCH_MODES = [
+  {
+    id: 'goodTrades',
+    label: 'Viele gute Tausche',
+    helper: 'beidseitig passend',
+  },
+  {
+    id: 'iCanGiveMost',
+    label: 'Ich kann am meisten geben',
+    helper: 'deine Doppelten',
+  },
+  {
+    id: 'theyCanGiveMost',
+    label: 'Kann mir am meisten geben',
+    helper: 'deine Fehlenden',
+  },
+]
+
+function compareByName(a, b) {
+  return (a.username || '').localeCompare(b.username || '', 'de', { sensitivity: 'base' })
+}
+
+function sortMatches(matches, mode) {
+  return [...matches].sort((a, b) => {
+    if (mode === 'iCanGiveMost') {
+      return (
+        b.iCanGive.length - a.iCanGive.length ||
+        b.mutualCount - a.mutualCount ||
+        b.theyCanGive.length - a.theyCanGive.length ||
+        compareByName(a, b)
+      )
+    }
+
+    if (mode === 'theyCanGiveMost') {
+      return (
+        b.theyCanGive.length - a.theyCanGive.length ||
+        b.mutualCount - a.mutualCount ||
+        b.iCanGive.length - a.iCanGive.length ||
+        compareByName(a, b)
+      )
+    }
+
+    return (
+      b.mutualCount - a.mutualCount ||
+      b.totalTradeable - a.totalTradeable ||
+      b.theyCanGive.length - a.theyCanGive.length ||
+      b.iCanGive.length - a.iCanGive.length ||
+      compareByName(a, b)
+    )
+  })
+}
+
+function getMatchesForMode(matches, mode) {
+  if (mode === 'iCanGiveMost') {
+    return sortMatches(matches.filter((match) => match.iCanGive.length > 0), mode)
+  }
+
+  if (mode === 'theyCanGiveMost') {
+    return sortMatches(matches.filter((match) => match.theyCanGive.length > 0), mode)
+  }
+
+  return sortMatches(matches.filter((match) => match.mutualCount > 0), mode)
+}
+
+function getMatchMetric(match, mode) {
+  if (mode === 'iCanGiveMost') {
+    return { value: match.iCanGive.length, label: 'Du gibst' }
+  }
+
+  if (mode === 'theyCanGiveMost') {
+    return { value: match.theyCanGive.length, label: 'Du bekommst' }
+  }
+
+  return { value: match.mutualCount, label: 'gute Tausche' }
+}
+
+function getEmptyMatchText(mode, searchNumber, directoryLoading) {
+  if (searchNumber) {
+    return {
+      title: 'Kein Ergebnis',
+      text: `Kein Partner im aktuellen Filter passt zu Sticker #${searchNumber}.`,
+    }
+  }
+
+  if (directoryLoading) {
+    return {
+      title: 'Tauschpartner werden geladen',
+      text: 'Die Vorschlaege werden gerade neu berechnet.',
+    }
+  }
+
+  if (mode === 'iCanGiveMost') {
+    return {
+      title: 'Du kannst gerade niemandem helfen',
+      text: 'Sobald deine doppelten Sticker anderen fehlen, findest du hier passende Partner.',
+    }
+  }
+
+  if (mode === 'theyCanGiveMost') {
+    return {
+      title: 'Dir kann gerade niemand helfen',
+      text: 'Sobald andere deine fehlenden Sticker doppelt haben, tauchen sie hier auf.',
+    }
+  }
+
+  return {
+    title: 'Noch keine guten Tausche',
+    text: 'Gute Tausche brauchen beide Richtungen: Jemand hat etwas fuer dich und du hast etwas fuer diese Person.',
+  }
+}
 
 export default function TauschboersePage() {
   const { user } = useAuth()
@@ -15,7 +127,8 @@ export default function TauschboersePage() {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
   const [searchNumber, setSearchNumber] = useState('')
-  const [activeTab, setActiveTab] = useState('matches')
+  const [matchMode, setMatchMode] = useState('goodTrades')
+  const [matchFilterOpen, setMatchFilterOpen] = useState(false)
   const [selectedMatch, setSelectedMatch] = useState(null)
   const [selectedGive, setSelectedGive] = useState([])
   const [selectedWant, setSelectedWant] = useState([])
@@ -54,19 +167,37 @@ export default function TauschboersePage() {
     void refreshDirectory()
   }, [refreshDirectory, user])
 
+  const matchModeCounts = useMemo(() => ({
+    goodTrades: matches.filter((match) => match.mutualCount > 0).length,
+    iCanGiveMost: matches.filter((match) => match.iCanGive.length > 0).length,
+    theyCanGiveMost: matches.filter((match) => match.theyCanGive.length > 0).length,
+  }), [matches])
+
   const filteredMatches = useMemo(() => {
-    if (!searchNumber) return matches
-    const num = parseInt(searchNumber)
-    if (isNaN(num)) return matches
-  return matches.filter(m =>
+    const modeMatches = getMatchesForMode(matches, matchMode)
+
+    if (!searchNumber) return modeMatches
+
+    const num = parseInt(searchNumber, 10)
+    if (isNaN(num)) return modeMatches
+
+    return modeMatches.filter(m =>
       m.theyCanGive.includes(num) || m.iCanGive.includes(num)
     )
-  }, [matches, searchNumber])
+  }, [matches, matchMode, searchNumber])
+
+  const emptyMatchText = getEmptyMatchText(matchMode, searchNumber, directoryLoading)
+  const activeMatchMode = MATCH_MODES.find((mode) => mode.id === matchMode) || MATCH_MODES[0]
 
   const hasStickers = Object.keys(stickers).length > 0
 
   const handleOpenConversation = (partnerId) => {
     router.push(`/nachrichten/${partnerId}`)
+  }
+
+  const handleSelectMatchMode = (modeId) => {
+    setMatchMode(modeId)
+    setMatchFilterOpen(false)
   }
 
   const openMatchDetails = (match) => {
@@ -171,39 +302,69 @@ export default function TauschboersePage() {
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className={styles.tabs}>
-            <button className={`${styles.tab} ${activeTab === 'matches' ? styles.activeTab : ''}`} onClick={() => setActiveTab('matches')}>
-              Matches
+          <div
+            className={styles.matchFilterDropdown}
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) {
+                setMatchFilterOpen(false)
+              }
+            }}
+          >
+            <button
+              type="button"
+              className={styles.matchFilterTrigger}
+              onClick={() => setMatchFilterOpen((current) => !current)}
+              aria-haspopup="listbox"
+              aria-expanded={matchFilterOpen}
+            >
+              <span className={styles.matchFilterTriggerText}>
+                <small>Sortierung</small>
+                <strong>{activeMatchMode.label}</strong>
+                <em>{matchModeCounts[activeMatchMode.id]} Partner · {activeMatchMode.helper}</em>
+              </span>
+              <span className={`${styles.matchFilterChevron} ${matchFilterOpen ? styles.matchFilterChevronOpen : ''}`} aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="m7 10 5 5 5-5" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </span>
             </button>
-            <button className={`${styles.tab} ${activeTab === 'missing' ? styles.activeTab : ''}`} onClick={() => setActiveTab('missing')}>
-              Fehlende
-            </button>
-            <button className={`${styles.tab} ${activeTab === 'duplicates' ? styles.activeTab : ''}`} onClick={() => setActiveTab('duplicates')}>
-              Doppelte
-            </button>
+
+            {matchFilterOpen ? (
+              <div className={styles.matchFilterMenu} role="listbox" aria-label="Tauschpartner sortieren">
+                {MATCH_MODES.map((mode) => (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    className={`${styles.matchFilterOption} ${matchMode === mode.id ? styles.activeMatchFilterOption : ''}`}
+                    onClick={() => handleSelectMatchMode(mode.id)}
+                    role="option"
+                    aria-selected={matchMode === mode.id}
+                  >
+                    <span>
+                      <strong>{mode.label}</strong>
+                      <small>{matchModeCounts[mode.id]} Partner · {mode.helper}</small>
+                    </span>
+                    {matchMode === mode.id ? (
+                      <span className={styles.matchFilterCheck} aria-hidden="true">✓</span>
+                    ) : null}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
 
-          {/* Match List */}
-          {activeTab === 'matches' && (
-            <div className={styles.matchList}>
-              {filteredMatches.length === 0 ? (
-                <div className="empty-state">
-                  <span className="empty-state-icon"><SearchIcon size={40} strokeWidth={1.8} /></span>
-                  <span className="empty-state-title">
-                    {searchNumber ? 'Kein Ergebnis' : 'Noch keine Tauschpartner'}
-                  </span>
-                  <span className="empty-state-text">
-                    {searchNumber
-                      ? `Niemand hat Sticker #${searchNumber} zum Tauschen.`
-                      : directoryLoading
-                      ? 'Tauschpartner werden gerade neu geladen.'
-                      : 'Sobald sich mehr Nutzer registrieren, findest du hier passende Tauschpartner!'
-                    }
-                  </span>
-                </div>
-              ) : (
-                filteredMatches.map((match, idx) => (
+          <div className={styles.matchList}>
+            {filteredMatches.length === 0 ? (
+              <div className="empty-state">
+                <span className="empty-state-icon"><SearchIcon size={40} strokeWidth={1.8} /></span>
+                <span className="empty-state-title">{emptyMatchText.title}</span>
+                <span className="empty-state-text">{emptyMatchText.text}</span>
+              </div>
+            ) : (
+              filteredMatches.map((match, idx) => {
+                const matchMetric = getMatchMetric(match, matchMode)
+
+                return (
                   <div
                     key={match.userId}
                     className={styles.matchCard}
@@ -227,8 +388,8 @@ export default function TauschboersePage() {
                         <span className={styles.matchUsername}>@{match.username}</span>
                       </div>
                       <div className={styles.matchScore}>
-                        <span className={styles.matchScoreNum}>{match.mutualCount}</span>
-                        <span className={styles.matchScoreLabel}>Tausche</span>
+                        <span className={styles.matchScoreNum}>{matchMetric.value}</span>
+                        <span className={styles.matchScoreLabel}>{matchMetric.label}</span>
                       </div>
                     </div>
 
@@ -280,41 +441,15 @@ export default function TauschboersePage() {
                       </button>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          )}
-
-          {activeTab === 'missing' && (
-            <div className={styles.numberList}>
-              <p className={styles.listInfo}>Dir fehlen noch <strong>{missingStickers.length}</strong> von 708 Stickern:</p>
-              <div className={styles.numberChips}>
-                {missingStickers.map(n => (
-                  <span key={n} className={`${styles.stickerChip} ${styles.chipMissing}`}>#{n}</span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'duplicates' && (
-            <div className={styles.numberList}>
-              <p className={styles.listInfo}>Du hast <strong>{duplicateStickers.length}</strong> verschiedene Sticker doppelt:</p>
-              <div className={styles.numberChips}>
-                {duplicateStickers.map(s => (
-                  <span key={s.number} className={`${styles.stickerChip} ${styles.chipDuplicate}`}>
-                    #{s.number} <small>({s.quantity}×)</small>
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+                )
+              })
+            )}
+          </div>
         </>
       )}
 
       {selectedMatch && (
-        <div className="modal-overlay" onClick={closeMatchDetails}>
-          <div className={`modal-content ${styles.matchSheet}`} onClick={(event) => event.stopPropagation()}>
-            <div className="modal-handle" />
+        <SwipeableModal onClose={closeMatchDetails} contentClassName={styles.matchSheet}>
             <div className={styles.sheetHeader}>
               <div className={styles.sheetIdentity}>
                 <div className={styles.matchAvatar}>
@@ -412,8 +547,7 @@ export default function TauschboersePage() {
                 Auswahl übernehmen
               </button>
             </div>
-          </div>
-        </div>
+        </SwipeableModal>
       )}
     </div>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import BottomNav from '@/components/BottomNav'
 import AppOnboardingPrompt from '@/components/AppOnboardingPrompt'
@@ -11,6 +11,8 @@ import styles from './app-layout.module.css'
 function AppShell({ children }) {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
+  const isPresentationRoute = pathname?.startsWith('/liveinfo')
 
   useEffect(() => {
     if (!loading && !user) {
@@ -33,7 +35,7 @@ function AppShell({ children }) {
       <main className={styles.main}>
         {children}
       </main>
-      <BottomNav />
+      {isPresentationRoute ? null : <BottomNav />}
       <AppOnboardingPrompt />
     </div>
   )

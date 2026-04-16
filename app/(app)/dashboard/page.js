@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useMemo, useState, useEffect } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { ALBUM_CONFIG, useStickers } from '@/lib/stickers-context'
@@ -136,7 +137,6 @@ function LeaderboardTab() {
   )
 }
 
-
 const GROUP_LABELS = {
   fussball: 'Fußball',
   handball: 'Handball',
@@ -210,10 +210,17 @@ export default function DashboardPage() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <h1 className={styles.title}>Dashboard</h1>
-        <p className={styles.subtitle}>
-          Hallo {user?.displayName || user?.username}, hier siehst du deinen aktuellen Albumstand, deine Tauschaktivität und wo dir noch am meisten Sticker fehlen.
-        </p>
+        <div className={styles.headerTop}>
+          <div>
+            <h1 className={styles.title}>Dashboard</h1>
+            <p className={styles.subtitle}>
+              Hallo {user?.displayName || user?.username}, hier siehst du deinen aktuellen Albumstand, deine Tauschaktivität und wo dir noch am meisten Sticker fehlen.
+            </p>
+          </div>
+          <Link className={styles.profileLink} href="/profil" aria-label="Profil öffnen">
+            <span>{(user?.displayName || user?.username || 'P').charAt(0).toUpperCase()}</span>
+          </Link>
+        </div>
       </header>
 
       {/* Tabs */}
