@@ -1,6 +1,6 @@
 .page {
   position: fixed;
-  inset: 0 0 calc(var(--bottom-nav-height) + var(--safe-bottom) + 6px) 0;
+  inset: var(--safe-top) 0 calc(var(--bottom-nav-height) + var(--safe-bottom) + 6px) 0;
   background: var(--bg-secondary);
   z-index: 1;
 }
